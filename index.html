@@ -202,57 +202,63 @@
         let loopingNoteIndex = -1;
         let loopInterval;
 
-        // DOM Elements
-        const authModal = document.getElementById('auth-modal');
-        const loginForm = document.getElementById('login-form');
-        const registerForm = document.getElementById('register-form');
-        const showRegisterBtn = document.getElementById('show-register');
-        const showLoginBtn = document.getElementById('show-login');
-        const logoutBtn = document.getElementById('logout-btn');
-        const userInfo = document.getElementById('user-info');
-        const usernameDisplay = document.getElementById('username-display');
-        const urlInput = document.getElementById('youtube-url');
-        const loadVideoBtn = document.getElementById('load-video');
-        const noteTaker = document.getElementById('note-taker');
-        const setStartTimeBtn = document.getElementById('set-start-time');
-        const setEndTimeBtn = document.getElementById('set-end-time');
-        const startTimeDisplay = document.getElementById('start-time-display');
-        const endTimeDisplay = document.getElementById('end-time-display');
-        const addNoteBtn = document.getElementById('add-note');
-        const noteText = document.getElementById('note-text');
-        const stopLoopingBtn = document.getElementById('stop-looping');
-        const loopingStatus = document.getElementById('looping-status');
-        const playerPlaceholder = document.getElementById('player-placeholder');
-        const toast = document.getElementById('toast');
-
-        // Event Listeners
-        loadVideoBtn.addEventListener('click', handleLoadVideo);
-        urlInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleLoadVideo());
-        setStartTimeBtn.addEventListener('click', () => setTime('start'));
-        setEndTimeBtn.addEventListener('click', () => setTime('end'));
-        addNoteBtn.addEventListener('click', handleAddNote);
-        stopLoopingBtn.addEventListener('click', stopLoop);
-        
-        // Authentication event listeners
-        showRegisterBtn.addEventListener('click', () => {
-            loginForm.classList.add('hidden');
-            registerForm.classList.remove('hidden');
-        });
-
-        showLoginBtn.addEventListener('click', () => {
-            registerForm.classList.add('hidden');
-            loginForm.classList.remove('hidden');
-        });
-
-        logoutBtn.addEventListener('click', handleLogout);
-
-        // Form submissions
-        document.getElementById('login-form').addEventListener('submit', handleLogin);
-        document.getElementById('register-form').addEventListener('submit', handleRegister);
+        // DOM Elements - will be initialized after DOM loads
+        let authModal, loginForm, registerForm, showRegisterBtn, showLoginBtn, logoutBtn;
+        let userInfo, usernameDisplay, urlInput, loadVideoBtn, noteTaker;
+        let setStartTimeBtn, setEndTimeBtn, startTimeDisplay, endTimeDisplay;
+        let addNoteBtn, noteText, stopLoopingBtn, loopingStatus, playerPlaceholder, toast;
 
         // Check authentication on load
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('📱 DOM loaded, checking authentication...');
+            console.log('📱 DOM loaded, initializing application...');
+            
+            // Initialize DOM elements
+            authModal = document.getElementById('auth-modal');
+            loginForm = document.getElementById('login-form');
+            registerForm = document.getElementById('register-form');
+            showRegisterBtn = document.getElementById('show-register');
+            showLoginBtn = document.getElementById('show-login');
+            logoutBtn = document.getElementById('logout-btn');
+            userInfo = document.getElementById('user-info');
+            usernameDisplay = document.getElementById('username-display');
+            urlInput = document.getElementById('youtube-url');
+            loadVideoBtn = document.getElementById('load-video');
+            noteTaker = document.getElementById('note-taker');
+            setStartTimeBtn = document.getElementById('set-start-time');
+            setEndTimeBtn = document.getElementById('set-end-time');
+            startTimeDisplay = document.getElementById('start-time-display');
+            endTimeDisplay = document.getElementById('end-time-display');
+            addNoteBtn = document.getElementById('add-note');
+            noteText = document.getElementById('note-text');
+            stopLoopingBtn = document.getElementById('stop-looping');
+            loopingStatus = document.getElementById('looping-status');
+            playerPlaceholder = document.getElementById('player-placeholder');
+            toast = document.getElementById('toast');
+            
+            // Add event listeners
+            if (loadVideoBtn) loadVideoBtn.addEventListener('click', handleLoadVideo);
+            if (urlInput) urlInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleLoadVideo());
+            if (setStartTimeBtn) setStartTimeBtn.addEventListener('click', () => setTime('start'));
+            if (setEndTimeBtn) setEndTimeBtn.addEventListener('click', () => setTime('end'));
+            if (addNoteBtn) addNoteBtn.addEventListener('click', handleAddNote);
+            if (stopLoopingBtn) stopLoopingBtn.addEventListener('click', stopLoop);
+            
+            // Authentication event listeners
+            if (showRegisterBtn) showRegisterBtn.addEventListener('click', () => {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+            });
+            
+            if (showLoginBtn) showLoginBtn.addEventListener('click', () => {
+                registerForm.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+            });
+            
+            if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+            
+            // Form submissions
+            if (loginForm) loginForm.addEventListener('submit', handleLogin);
+            if (registerForm) registerForm.addEventListener('submit', handleRegister);
             
             // Initialize UI elements
             if (stopLoopingBtn) {
@@ -262,6 +268,7 @@
                 loopingStatus.textContent = '';
             }
             
+            console.log('✅ DOM elements initialized, checking authentication...');
             checkAuth();
         });
 
