@@ -29,7 +29,9 @@ A web-based tool that lets you load a YouTube video, take timestamped notes, and
 
 ## 🌐 Live Demo
 
-Visit the live application: [YouTube Note Clipper](https://yourusername.github.io/youtube_note/)
+Visit the live application: [YouTube Note Clipper](https://nghiatrngo.github.io/youtube_note/)
+
+**Note**: GitHub Pages needs to be enabled first. See setup instructions below.
 
 ## 📱 Browser Compatibility
 
@@ -42,7 +44,7 @@ Visit the live application: [YouTube Note Clipper](https://yourusername.github.i
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/youtube_note.git
+   git clone https://github.com/nghiatrngo/youtube_note.git
    cd youtube_note
    ```
 
@@ -50,6 +52,21 @@ Visit the live application: [YouTube Note Clipper](https://yourusername.github.i
    - Or use a local server: `python -m http.server 8000`
 
 3. Start taking notes on YouTube videos!
+
+## 🚀 Deploy to GitHub Pages
+
+To make your app live on the web:
+
+1. **Enable GitHub Pages:**
+   - Go to your repository: https://github.com/nghiatrngo/youtube_note
+   - Click "Settings" → "Pages" in the left sidebar
+   - Under "Source", select "Deploy from a branch"
+   - Choose "master" branch and "/" (root) folder
+   - Click "Save"
+
+2. **Wait for deployment** (usually takes a few minutes)
+
+3. **Your app will be live at:** https://nghiatrngo.github.io/youtube_note/
 
 ## 📝 Contributing
 
