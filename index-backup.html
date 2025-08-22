@@ -79,7 +79,13 @@
                     <button id="toolbar-load-video" class="bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700 transition">
                         Load Video
                     </button>
-                </div>
+                    <div id="url-input-section" class="hidden">
+                        <input type="text" id="url-input" placeholder="Paste YouTube URL here..." class="px-3 py-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-64">
+                        <button id="load-video-btn" class="ml-2 bg-green-500 text-white px-3 py-1.5 rounded text-sm hover:bg-green-600 transition">
+                            Load
+                        </button>
+                    </div>
+                    </div>
             </div>
 
             <!-- Video Controls Toolbar -->
@@ -105,12 +111,6 @@
                         <span>End: <span id="toolbar-end-time" class="font-mono">00:00</span></span>
                     </div>
                     <div class="w-px h-6 bg-gray-300 mx-1"></div>
-                    <button id="toolbar-speed-50" class="bg-purple-500 hover:bg-purple-600 text-white px-2 py-1 rounded text-xs transition">
-                        50%
-                    </button>
-                    <button id="toolbar-speed-150" class="bg-purple-500 hover:bg-purple-600 text-white px-2 py-1 rounded text-xs transition">
-                        150%
-                    </button>
                     <button id="toolbar-stop-looping" class="hidden bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs transition">
                         Stop Loop
                     </button>
@@ -216,8 +216,13 @@
             <div class="flex-1 flex flex-col min-w-0">
                 <!-- Main Content -->
                 <main class="flex-1 bg-white p-4 lg:p-6 w-full">
-
-
+                    <!-- URL Input Section -->
+                <div id="url-input-section" class="flex flex-col sm:flex-row gap-4 mb-6">
+                        <input type="text" id="youtube-url" class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Enter YouTube URL (e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ)">
+                        <button id="load-video" class="bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Load Video
+                        </button>
+                    </div>
                 
 
 
@@ -284,12 +289,12 @@
 
         // DOM Elements - will be initialized after DOM loads
         let authModal, loginForm, registerForm, showRegisterBtn, showLoginBtn, logoutBtn;
-        let userInfo, usernameDisplay, noteTaker;
+        let userInfo, usernameDisplay, urlInput, loadVideoBtn, noteTaker;
         let addNoteBtn, noteText, stopLoopingBtn, loopingStatus, playerPlaceholder, toast;
         let sidebarToggle, sidebar, mainContent;
-        let videoToolbar, videoControlsToolbar, toolbarLoadVideo, toolbarSetStart, toolbarSetEnd;
+        let urlInputSection, videoToolbar, toolbarLoadVideo, toolbarSetStart, toolbarSetEnd;
         let toolbarStartTime, toolbarEndTime, toolbarStopLooping, toolbarLoopingStatus;
-        let toolbarPlayPause, toolbarFrameBack, toolbarFrameForward, toolbarSpeed50, toolbarSpeed150;
+        let toolbarPlayPause, toolbarFrameBack, toolbarFrameForward;
 
         // Check authentication on load
         document.addEventListener('DOMContentLoaded', () => {
@@ -305,8 +310,8 @@
                 logoutBtn = document.getElementById('logout-btn');
                 userInfo = document.getElementById('user-info');
                 usernameDisplay = document.getElementById('username-display');
-
-
+                urlInput = document.getElementById('youtube-url');
+                loadVideoBtn = document.getElementById('load-video');
                 noteTaker = document.getElementById('note-taker');
                 addNoteBtn = document.getElementById('add-note');
                 noteText = document.getElementById('note-text');
@@ -319,6 +324,7 @@
                 mainContent = document.querySelector('.flex-1');
             
                 // Toolbar elements
+                urlInputSection = document.getElementById('url-input-section');
                 videoControlsToolbar = document.getElementById('video-controls-toolbar');
                 toolbarLoadVideo = document.getElementById('toolbar-load-video');
                 toolbarSetStart = document.getElementById('toolbar-set-start');
@@ -330,10 +336,10 @@
                 toolbarPlayPause = document.getElementById('toolbar-play-pause');
                 toolbarFrameBack = document.getElementById('toolbar-frame-back');
                 toolbarFrameForward = document.getElementById('toolbar-frame-forward');
-                toolbarSpeed50 = document.getElementById('toolbar-speed-50');
-                toolbarSpeed150 = document.getElementById('toolbar-speed-150');
             
                 // Add event listeners
+                if (loadVideoBtn) loadVideoBtn.addEventListener('click', handleLoadVideo);
+                if (urlInput) urlInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleLoadVideo());
                 if (stopLoopingBtn) stopLoopingBtn.addEventListener('click', stopLoop);
 
                 // Authentication event listeners
@@ -364,10 +370,6 @@
                 if (toolbarPlayPause) toolbarPlayPause.addEventListener('click', togglePlayPause);
                 if (toolbarFrameBack) toolbarFrameBack.addEventListener('click', () => seekFrame(-1));
                 if (toolbarFrameForward) toolbarFrameForward.addEventListener('click', () => seekFrame(1));
-                if (toolbarSpeed50) toolbarSpeed50.addEventListener('click', () => setPlaybackSpeed(0.5));
-                if (toolbarSpeed50) toolbarSpeed50.addEventListener('dblclick', () => setPlaybackSpeed(1.0));
-                if (toolbarSpeed150) toolbarSpeed150.addEventListener('click', () => setPlaybackSpeed(1.5));
-                if (toolbarSpeed150) toolbarSpeed150.addEventListener('dblclick', () => setPlaybackSpeed(1.0));
                 
                 // Note taking event listeners
                 if (addNoteBtn) {
@@ -377,9 +379,21 @@
                     console.log('❌ Add note button not found');
                 }
                 
-
+                // Load video button event listener (header)
+                const headerLoadVideoBtn = document.getElementById('load-video-btn');
+                if (headerLoadVideoBtn) {
+                    headerLoadVideoBtn.addEventListener('click', handleLoadVideo);
+                }
                 
-
+                // URL input enter key event listener (header)
+                const headerUrlInput = document.getElementById('url-input');
+                if (headerUrlInput) {
+                    headerUrlInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            handleLoadVideo();
+                        }
+                    });
+                }
             
             // Login button event listener
             const loginBtn = document.getElementById('login-btn');
@@ -495,32 +509,51 @@
             }
         }
         
-
-        
-        // Toggle URL input section
-        function toggleUrlInput() {
-            const url = prompt('Enter YouTube URL:');
-            if (url && url.trim()) {
-                // Create a temporary input element to use the existing handleLoadVideo logic
-                const tempInput = document.createElement('input');
-                tempInput.value = url.trim();
-                tempInput.id = 'temp-url-input';
-                document.body.appendChild(tempInput);
-                
-                // Call handleLoadVideo with the temporary input
-                const originalUrlInput = document.getElementById('url-input');
-                if (originalUrlInput) {
-                    originalUrlInput.value = url.trim();
-                }
-                
-                handleLoadVideo();
-                
-                // Clean up temporary input
-                document.body.removeChild(tempInput);
+        // Show URL input section
+        function showUrlInput() {
+            if (urlInputSection && videoControlsToolbar) {
+                urlInputSection.classList.remove('hidden');
+                videoControlsToolbar.classList.add('hidden');
+                // Clear URL input
+                if (urlInput) urlInput.value = '';
+                // Focus on URL input
+                if (urlInput) urlInput.focus();
             }
         }
         
-
+        // Toggle URL input section
+        function toggleUrlInput() {
+            const urlInputSection = document.getElementById('url-input-section');
+            const urlInput = document.getElementById('url-input');
+            
+            if (urlInputSection) {
+                if (urlInputSection.classList.contains('hidden')) {
+                    // Show URL input
+                    urlInputSection.classList.remove('hidden');
+                    if (urlInput) {
+                        urlInput.focus();
+                        urlInput.select();
+                    }
+                } else {
+                    // Hide URL input if empty
+                    if (urlInput && urlInput.value.trim() === '') {
+                        urlInputSection.classList.add('hidden');
+                    } else {
+                        // If not empty, just clear the input
+                        urlInput.value = '';
+                        urlInput.focus();
+                    }
+                }
+            }
+        }
+        
+        // Hide URL input and show toolbar
+        function showToolbar() {
+            if (urlInputSection && videoControlsToolbar) {
+                urlInputSection.classList.add('hidden');
+                videoControlsToolbar.classList.remove('hidden');
+            }
+        }
 
         // Cloud API functions
         async function cloudLogin(email, password) {
@@ -680,17 +713,10 @@
 
         // Load video function
         async function handleLoadVideo() {
-            let urlInput = document.getElementById('url-input');
-            
-            // If no URL input element exists, try to get the URL from the prompt
+            const urlInput = document.getElementById('url-input');
             if (!urlInput) {
-                const url = prompt('Enter YouTube URL:');
-                if (!url || !url.trim()) {
-                    return;
-                }
-                // Create a temporary input element
-                urlInput = document.createElement('input');
-                urlInput.value = url.trim();
+                showToast('URL input not found', 'error');
+                return;
             }
             
             const videoId = getYouTubeVideoId(urlInput.value);
@@ -739,13 +765,17 @@
             
             showToast(`Video loaded: ${currentVideoTitle}`, 'success');
             
-            // Show video controls toolbar after video loads
-            if (videoControlsToolbar) {
-                videoControlsToolbar.classList.remove('hidden');
+            // Show toolbar after video loads
+            showToolbar();
+            
+            // Hide URL input section after successful load
+            const urlInputSection = document.getElementById('url-input-section');
+            if (urlInputSection) {
+                urlInputSection.classList.add('hidden');
             }
             
-            // Clear the URL input if it exists
-            if (urlInput && urlInput.id !== 'temp-url-input') {
+            // Clear the URL input
+            if (urlInput) {
                 urlInput.value = '';
             }
             
@@ -766,7 +796,7 @@
                 console.log('Could not fetch video title, using fallback');
             }
             
-            return `Video ${videoId}`;
+                    return `Video ${videoId}`;
         }
 
         // Load video notes
@@ -809,16 +839,16 @@
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     
-                    if (response.ok) {
-                        const data = await response.json();
-                        notes = data.notes || [];
-                        console.log('✅ Cloud notes loaded:', notes.length, 'notes');
-                        renderCurrentVideoNotes();
-                    } else {
-                        console.log('❌ Failed to fetch cloud notes:', response.status);
-                        notes = [];
-                        renderCurrentVideoNotes();
-                    }
+                                    if (response.ok) {
+                    const data = await response.json();
+                    notes = data.notes || [];
+                    console.log('✅ Cloud notes loaded:', notes.length, 'notes');
+                    renderCurrentVideoNotes();
+                } else {
+                    console.log('❌ Failed to fetch cloud notes:', response.status);
+                    notes = [];
+                    renderCurrentVideoNotes();
+                }
                 } else {
                     // localStorage fallback
                     const userNotes = JSON.parse(localStorage.getItem(`notes_${user.id}`) || '[]');
@@ -1602,43 +1632,6 @@
             showToast(`Paused and seeked ${frameText}`, 'info');
         }
         
-        // Set playback speed function
-        function setPlaybackSpeed(speed) {
-            if (!player || typeof player.setPlaybackRate !== 'function') {
-                showToast('Player not ready', 'error');
-                return;
-            }
-            
-            try {
-                player.setPlaybackRate(speed);
-                
-                // Update button states to show which speed is active
-                if (toolbarSpeed50) {
-                    if (speed === 0.5) {
-                        toolbarSpeed50.className = 'bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs transition';
-                    } else {
-                        toolbarSpeed50.className = 'bg-purple-500 hover:bg-purple-600 text-white px-2 py-1 rounded text-xs transition';
-                    }
-                }
-                
-                if (toolbarSpeed150) {
-                    if (speed === 1.5) {
-                        toolbarSpeed150.className = 'bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs transition';
-                    } else {
-                        toolbarSpeed150.className = 'bg-purple-500 hover:bg-purple-600 text-white px-2 py-1 rounded text-xs transition';
-                    }
-                }
-                
-                // Show feedback
-                const speedText = Math.round(speed * 100) + '%';
-                showToast(`Playback speed set to ${speedText}`, 'info');
-                
-            } catch (error) {
-                console.error('Error setting playback speed:', error);
-                showToast('Failed to set playback speed', 'error');
-            }
-        }
-        
         // State persistence functions
         function savePageState() {
             const state = {
@@ -1756,23 +1749,6 @@
             // Hide header toolbar when resetting
             if (videoControlsToolbar) {
                 videoControlsToolbar.classList.add('hidden');
-            }
-            
-            // Reset speed buttons to default state
-            if (toolbarSpeed50) {
-                toolbarSpeed50.className = 'bg-purple-500 hover:bg-purple-600 text-white px-2 py-1 rounded text-xs transition';
-            }
-            if (toolbarSpeed150) {
-                toolbarSpeed150.className = 'bg-purple-500 hover:bg-purple-600 text-white px-2 py-1 rounded text-xs transition';
-            }
-            
-            // Reset playback speed to 100%
-            if (player && typeof player.setPlaybackRate === 'function') {
-                try {
-                    player.setPlaybackRate(1.0);
-                } catch (error) {
-                    console.log('Could not reset playback speed');
-                }
             }
         }
 

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple JavaScript Test</title>
+</head>
+<body>
+    <h1>Simple JavaScript Test</h1>
+    <button id="test-btn">Click Me</button>
+    <div id="result"></div>
+
+    <script>
+        console.log('Script starting...');
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded');
+            
+            const btn = document.getElementById('test-btn');
+            const result = document.getElementById('result');
+            
+            if (btn && result) {
+                btn.addEventListener('click', function() {
+                    console.log('Button clicked!');
+                    result.textContent = 'Button works! ' + new Date().toLocaleTimeString();
+                });
+                console.log('Event listener added');
+            } else {
+                console.error('Elements not found');
+            }
+        });
+        
+        console.log('Script loaded');
+    </script>
+</body>
+</html>

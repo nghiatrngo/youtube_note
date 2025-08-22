@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Test</title>
+</head>
+<body>
+    <h1>Debug Test</h1>
+    <button id="test-btn">Test Button</button>
+    <div id="output"></div>
+
+    <script>
+        console.log('Debug test starting...');
+        
+        // Test basic functionality
+        document.getElementById('test-btn').addEventListener('click', function() {
+            console.log('Button clicked!');
+            document.getElementById('output').textContent = 'Button works!';
+        });
+        
+        console.log('Debug test loaded successfully');
+    </script>
+</body>
+</html>

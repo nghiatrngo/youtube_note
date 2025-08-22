@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal YouTube Note Clipper Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b px-4 py-3">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <h1 class="text-lg font-bold text-gray-800">YouTube Note Clipper</h1>
+                <button id="toolbar-load-video" class="bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700 transition">
+                    Load Video
+                </button>
+            </div>
+            <button id="login-btn" class="bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700 transition">Login</button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="p-4">
+        <div id="player-container" class="bg-black rounded-lg overflow-hidden shadow-inner" style="aspect-ratio: 16/9;">
+            <div id="player-placeholder" class="w-full h-full flex items-center justify-center text-gray-400">
+                <span>Video will appear here</span>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        console.log('Minimal test starting...');
+        
+        // Basic configuration
+        const USE_CLOUD = false; // Use localStorage for testing
+        
+        // Global variables
+        let currentUser = null;
+        let notes = [];
+        let allNotes = [];
+        
+        // DOM elements
+        let toolbarLoadVideo, loginBtn, playerPlaceholder;
+        
+        // Basic functions
+        function showToast(message, type = 'info') {
+            console.log(`Toast [${type}]: ${message}`);
+        }
+        
+        function toggleUrlInput() {
+            console.log('Toggle URL input called');
+            showToast('Toggle URL input clicked!', 'info');
+        }
+        
+        function showAuthModal() {
+            console.log('Show auth modal called');
+            showToast('Login button clicked!', 'info');
+        }
+        
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                console.log('DOM loaded, initializing...');
+                
+                // Get DOM elements
+                toolbarLoadVideo = document.getElementById('toolbar-load-video');
+                loginBtn = document.getElementById('login-btn');
+                playerPlaceholder = document.getElementById('player-placeholder');
+                
+                console.log('DOM elements:', { toolbarLoadVideo, loginBtn, playerPlaceholder });
+                
+                // Add event listeners
+                if (toolbarLoadVideo) {
+                    toolbarLoadVideo.addEventListener('click', toggleUrlInput);
+                    console.log('Load video button listener added');
+                }
+                
+                if (loginBtn) {
+                    loginBtn.addEventListener('click', showAuthModal);
+                    console.log('Login button listener added');
+                }
+                
+                console.log('✅ Minimal test initialized successfully');
+                
+            } catch (error) {
+                console.error('❌ Error during initialization:', error);
+            }
+        });
+        
+        console.log('✅ Minimal test script loaded');
+    </script>
+</body>
+</html>
