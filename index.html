@@ -620,6 +620,13 @@
                 // Sidebar toggle
                 if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);
                 
+                // Initialize sidebar to collapsed state by default
+                if (sidebar && mainContent) {
+                    sidebar.classList.add('collapsed');
+                    mainContent.classList.add('sidebar-collapsed');
+                    console.log('✅ Sidebar initialized to collapsed state');
+                }
+                
                 // Toolbar event listeners
                 if (toolbarLoadVideo) toolbarLoadVideo.addEventListener('click', handleLoadVideo);
                 
@@ -2669,12 +2676,12 @@
                 loopingStatus.textContent = '';
             }
             
-            // Reset sidebar to default state
+            // Reset sidebar to collapsed state (default)
             if (mainContent) {
-                mainContent.classList.remove('sidebar-collapsed');
+                mainContent.classList.add('sidebar-collapsed');
             }
             if (sidebar) {
-                sidebar.classList.remove('collapsed');
+                sidebar.classList.add('collapsed');
             }
             
             // Clear UI displays
