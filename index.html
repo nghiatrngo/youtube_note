@@ -3,14 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Note Clipper</title>
+    <title>YouTube Note Clipper - Static Version</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* Custom scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
@@ -19,9 +14,10 @@
         .video-container {
             position: relative;
             width: 100%;
-            padding-bottom: 56.25%; /* 16:9 aspect ratio */
             height: 0;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
         }
+        
         .video-container iframe {
             position: absolute;
             top: 0;
@@ -29,130 +25,266 @@
             width: 100%;
             height: 100%;
         }
-
-        /* Styles for the resizable columns */
-        #resizable-container {
-            display: flex;
-            width: 100%;
-            height: auto;
+        
+        /* Sidebar animations */
+        #sidebar {
+            transform: translateX(0);
+            width: 20rem; /* 320px */
         }
-        #left-panel, #right-panel {
-            min-width: 200px; /* Prevent columns from becoming too small */
-            padding: 1rem;
+        
+        #sidebar.sidebar-collapsed {
+            transform: translateX(-100%);
+            width: 0;
+            overflow: hidden;
         }
-        #left-panel {
-            width: 50%;
+        
+        /* Ensure proper height */
+        .h-full {
+            height: calc(100vh - 80px); /* Adjust for header height */
         }
-        #right-panel {
-            flex-grow: 1; /* Take up remaining space */
+        
+        /* Main content area */
+        .main-content-expanded {
+            margin-left: 0;
         }
-        #gutter {
-            width: 10px;
-            cursor: col-resize;
-            background-color: #e5e7eb; /* gray-200 */
-            flex-shrink: 0;
-            border-left: 1px solid #d1d5db; /* gray-300 */
-            border-right: 1px solid #d1d5db; /* gray-300 */
-        }
-        #gutter:hover {
-            background-color: #d1d5db; /* gray-300 */
+        
+        .auth-form {
+            max-width: 400px;
+            margin: 0 auto;
         }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
-    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-gray-900">YouTube Note Clipper</h1>
-            <p class="text-lg text-gray-600 mt-2">Create timestamped clips and notes from any YouTube video.</p>
-        </header>
-
-        <main class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
-            <!-- URL Input Section -->
-            <div class="flex flex-col sm:flex-row gap-4 mb-6">
-                <input type="text" id="youtube-url" class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Enter YouTube URL (e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ)">
-                <button id="load-video" class="bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    Load Video
-                </button>
+    <!-- Authentication Modal -->
+    <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <div id="login-form" class="auth-form">
+                <h2 class="text-2xl font-bold text-center mb-6">Welcome Back</h2>
+                <form id="login-form-element">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="login-email">Email</label>
+                        <input type="email" id="login-email" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="login-password">Password</label>
+                        <input type="password" id="login-password" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition">Sign In</button>
+                </form>
+                <p class="text-center mt-4 text-gray-600">
+                    Don't have an account? 
+                    <button id="show-register" class="text-blue-600 hover:underline">Sign up</button>
+                </p>
             </div>
 
-            <div id="resizable-container">
-                <!-- Left Panel: Video and Notes Section -->
-                <div id="left-panel">
-                    <!-- YouTube Player -->
-                    <div id="player-container" class="video-container bg-black rounded-lg overflow-hidden shadow-inner mb-6">
-                         <div id="player-placeholder" class="w-full h-full flex items-center justify-center text-gray-400">
-                            <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            <span class="ml-4">Video will appear here</span>
-                        </div>
-                        <div id="player"></div>
+            <div id="register-form" class="auth-form hidden">
+                <h2 class="text-2xl font-bold text-center mb-6">Create Account</h2>
+                <form id="register-form-element">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="register-username">Username</label>
+                        <input type="text" id="register-username" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                        <div id="username-error" class="hidden text-red-600 text-sm mt-1"></div>
                     </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="register-email">Email</label>
+                        <input type="email" id="register-email" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                        <div id="email-error" class="hidden text-red-600 text-sm mt-1"></div>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="register-password">Password</label>
+                        <input type="password" id="register-password" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                        <div id="password-error" class="hidden text-red-600 text-sm mt-1"></div>
+                        <p class="text-gray-500 text-xs mt-1">Password must be at least 6 characters long</p>
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 text-white font-semibold py-3 rounded-lg hover:bg-green-700 transition">Create Account</button>
+                </form>
+                <p class="text-center mt-4 text-gray-600">
+                    Already have an account? 
+                    <button id="show-login" class="text-blue-600 hover:underline">Sign in</button>
+                </p>
+            </div>
+        </div>
+    </div>
 
-                    <!-- Note Taking Area -->
-                    <div id="note-taker" class="hidden bg-gray-50 p-4 rounded-lg">
-                        <h3 class="text-xl font-semibold mb-3">Create a Clip</h3>
-                        <div class="grid grid-cols-2 gap-4 mb-3">
-                            <button id="set-start-time" class="bg-cyan-500 text-white font-semibold py-2 rounded-lg hover:bg-cyan-600 transition">Set Start</button>
-                            <button id="set-end-time" class="bg-teal-500 text-white font-semibold py-2 rounded-lg hover:bg-teal-600 transition">Set End</button>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4 mb-3 text-center">
-                            <div>
-                                <label class="text-sm font-medium text-gray-600">Start Time</label>
-                                <p id="start-time-display" class="font-mono text-lg p-2 bg-white border rounded-md">00:00</p>
-                            </div>
-                            <div>
-                                <label class="text-sm font-medium text-gray-600">End Time</label>
-                                <p id="end-time-display" class="font-mono text-lg p-2 bg-white border rounded-md">00:00</p>
-                            </div>
-                        </div>
-                        <textarea id="note-text" class="w-full p-3 border border-gray-300 rounded-lg h-24 focus:ring-2 focus:ring-blue-500" placeholder="Write your note for this clip..."></textarea>
-                        <button id="add-note" class="mt-3 w-full bg-green-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-green-600 transition shadow-md">
-                            Add Note & Clip
+    <div class="w-full h-full">
+        <!-- Header with User Info -->
+        <header class="text-center mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <div></div>
+                <div id="user-info" class="hidden">
+                    <span class="text-gray-600">Welcome, </span>
+                    <span id="username-display" class="font-semibold text-blue-600"></span>
+                    <button id="logout-btn" class="ml-4 text-red-600 hover:text-red-800 text-sm">Logout</button>
+                </div>
+            </div>
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">YouTube Note Clipper</h1>
+            <p class="text-xl text-gray-600 mb-4">Create timestamped clips and notes from any YouTube video</p>
+            <button id="debug-test" class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition">🔍 Debug Test</button>
+        </header>
+
+        <div class="flex h-full">
+            <!-- Collapsible Left Sidebar -->
+            <div id="sidebar" class="bg-white border-r border-gray-200 w-80 transition-all duration-300 ease-in-out">
+                <!-- Sidebar Header -->
+                <div class="p-4 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-800">User Profile</h3>
+                        <button id="sidebar-toggle" class="text-gray-500 hover:text-gray-700">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
                         </button>
                     </div>
                 </div>
 
-                <!-- Gutter for resizing -->
-                <div id="gutter"></div>
+                <!-- User Profile Section -->
+                <div class="p-4">
+                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg p-4 mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-xl font-bold">
+                                <span id="user-avatar">U</span>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-bold" id="profile-username">Username</h2>
+                                <p class="text-blue-100 text-sm" id="profile-email">email@example.com</p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-4 mt-3 text-sm">
+                            <div>
+                                <span class="font-bold" id="total-notes">0</span>
+                                <span class="text-blue-100"> notes</span>
+                            </div>
+                            <div>
+                                <span class="font-bold" id="total-videos">0</span>
+                                <span class="text-blue-100"> videos</span>
+                            </div>
+                        </div>
+                        <!-- Export/Import Actions -->
+                        <div id="profile-actions" class="mt-3">
+                            <!-- Export/Import buttons will be added here by JavaScript -->
+                        </div>
+                    </div>
 
-                <!-- Right Panel: Notes List Section -->
-                <div id="right-panel" class="flex flex-col">
-                    <h2 class="text-2xl font-bold mb-4 border-b pb-2">My Notes & Clips</h2>
-                    <div id="notes-list-container" class="flex-grow bg-gray-50 p-4 rounded-lg overflow-y-auto h-96 max-h-[600px]">
-                        <ul id="notes-list" class="space-y-4">
-                           <li id="notes-placeholder" class="text-center text-gray-500 py-16">Your notes and clips will be displayed here.</li>
-                        </ul>
+                    <!-- All Notes Sidebar -->
+                    <div class="bg-white border border-gray-200 rounded-lg p-3">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="text-sm font-semibold text-gray-800">All My Notes</h3>
+                            <button id="refresh-all-notes" class="text-blue-600 hover:text-blue-800 text-xs">Refresh</button>
+                        </div>
+                        <div id="all-notes-sidebar" class="space-y-3 max-h-80 overflow-y-auto">
+                            <p class="text-gray-500 text-center py-6 text-sm">Loading notes...</p>
+                        </div>
                     </div>
                 </div>
             </div>
-        </main>
+
+            <!-- Main Content Area -->
+            <div class="flex-1 flex flex-col min-w-0">
+                <!-- Sidebar Toggle Button (when collapsed) -->
+                <div id="sidebar-toggle-collapsed" class="hidden p-4">
+                    <button id="sidebar-expand" class="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Main Content -->
+                <main class="flex-1 bg-white p-4 lg:p-6 w-full">
+                    <!-- URL Input Section -->
+                    <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                        <input type="text" id="youtube-url" class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Enter YouTube URL (e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ)">
+                        <button id="load-video" class="bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Load Video
+                        </button>
+                    </div>
+
+                    <!-- Video and Notes Section -->
+                    <div class="grid grid-cols-1 xl:grid-cols-4 gap-4 lg:gap-6">
+                        <!-- Video Player and Note Taking -->
+                        <div class="xl:col-span-3">
+                            <!-- YouTube Player -->
+                            <div id="player-container" class="video-container bg-black rounded-lg overflow-hidden shadow-inner mb-6">
+                                 <div id="player-placeholder" class="w-full h-full flex items-center justify-center text-gray-400">
+                                    <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    <span class="ml-4">Video will appear here</span>
+                                </div>
+                                <div id="player"></div>
+                            </div>
+
+                            <!-- Note Taking Area -->
+                            <div id="note-taker" class="hidden bg-gray-50 p-4 rounded-lg">
+                                <h3 class="text-xl font-semibold mb-3">Create a Clip</h3>
+                                <div class="grid grid-cols-2 gap-4 mb-3">
+                                    <button id="set-start-time" class="bg-cyan-500 text-white font-semibold py-2 rounded-lg hover:bg-cyan-600 transition">Set Start</button>
+                                    <button id="set-end-time" class="bg-teal-500 text-white font-semibold py-2 rounded-lg hover:bg-teal-600 transition">Set End</button>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 mb-3 text-center">
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-600">Start Time</label>
+                                        <p id="start-time-display" class="font-mono text-lg p-2 bg-white border rounded-md">00:00</p>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-600">End Time</label>
+                                        <p id="end-time-display" class="font-mono text-lg p-2 bg-white border rounded-md">00:00</p>
+                                    </div>
+                                </div>
+                                <textarea id="note-text" class="w-full p-3 border border-gray-300 rounded-lg h-24 focus:ring-2 focus:ring-blue-500" placeholder="Write your note for this clip..."></textarea>
+                                <button id="add-note" class="mt-3 w-full bg-green-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-green-600 transition shadow-md">
+                                    Add Note & Clip
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Current Video Notes -->
+                        <div class="xl:col-span-1">
+                            <div class="bg-white border border-gray-200 rounded-lg p-4 h-fit">
+                                <h3 class="text-lg font-semibold mb-3 text-gray-800">Current Video Notes</h3>
+                                <div id="current-video-notes" class="space-y-3 max-h-96 overflow-y-auto">
+                                    <p class="text-gray-500 text-center py-8">No video loaded</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
     </div>
 
     <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-5 right-5 bg-gray-900 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transform translate-y-2 transition-all duration-300"></div>
+    <div id="toast" class="fixed bottom-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 opacity-0 translate-y-2"></div>
 
     <script>
-        // 1. YouTube IFrame Player API Setup
-        const tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        // Static-only version - everything stored in localStorage
+        console.log('🚀 YouTube Note Clipper - Static Version Loaded');
+        console.log('💾 All data stored in browser localStorage');
+        console.log('🌐 No external services required');
 
+        // Global variables
         let player;
         let currentVideoId = '';
+        let currentVideoTitle = '';
         let notes = [];
+        let allNotes = [];
         let tempStartTime = 0;
         let tempEndTime = 0;
+        let currentUser = null;
+        let loopingNoteIndex = -1;
+        let loopInterval;
 
-        // State for looping functionality
-        let loopInterval = null;
-        let loopingNoteIndex = -1; // -1 indicates no active loop
-
-        function onYouTubeIframeAPIReady() { /* Player initialized on video load */ }
-
-        // 2. DOM Element References
-        const loadVideoBtn = document.getElementById('load-video');
+        // DOM Elements
+        const authModal = document.getElementById('auth-modal');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const showRegisterBtn = document.getElementById('show-register');
+        const showLoginBtn = document.getElementById('show-login');
+        const logoutBtn = document.getElementById('logout-btn');
+        const userInfo = document.getElementById('user-info');
+        const usernameDisplay = document.getElementById('username-display');
+        const debugTestBtn = document.getElementById('debug-test');
         const urlInput = document.getElementById('youtube-url');
+        const loadVideoBtn = document.getElementById('load-video');
         const noteTaker = document.getElementById('note-taker');
         const setStartTimeBtn = document.getElementById('set-start-time');
         const setEndTimeBtn = document.getElementById('set-end-time');
@@ -160,130 +292,629 @@
         const endTimeDisplay = document.getElementById('end-time-display');
         const addNoteBtn = document.getElementById('add-note');
         const noteText = document.getElementById('note-text');
-        const notesList = document.getElementById('notes-list');
-        const notesPlaceholder = document.getElementById('notes-placeholder');
         const playerPlaceholder = document.getElementById('player-placeholder');
         const toast = document.getElementById('toast');
 
-        // 3. Event Listeners
+        // Event Listeners
         loadVideoBtn.addEventListener('click', handleLoadVideo);
         urlInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleLoadVideo());
         setStartTimeBtn.addEventListener('click', () => setTime('start'));
         setEndTimeBtn.addEventListener('click', () => setTime('end'));
         addNoteBtn.addEventListener('click', handleAddNote);
+        
+        // Add event listener for refresh all notes button
+        const refreshAllNotesBtn = document.getElementById('refresh-all-notes');
+        if (refreshAllNotesBtn) {
+            refreshAllNotesBtn.addEventListener('click', loadUserNotes);
+        }
+        
+        // Sidebar functionality
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebarToggleCollapsed = document.getElementById('sidebar-toggle-collapsed');
+        const sidebarExpand = document.getElementById('sidebar-expand');
+        
+        // Toggle sidebar
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.add('sidebar-collapsed');
+                sidebarToggleCollapsed.classList.remove('hidden');
+            });
+        }
+        
+        // Expand sidebar
+        if (sidebarExpand) {
+            sidebarExpand.addEventListener('click', () => {
+                sidebar.classList.remove('sidebar-collapsed');
+                sidebarToggleCollapsed.classList.add('hidden');
+            });
+        }
 
-        // 4. Core Functions
+        // Authentication event listeners
+        showRegisterBtn.addEventListener('click', () => {
+            loginForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
+        });
+
+        showLoginBtn.addEventListener('click', () => {
+            registerForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+        });
+
+        logoutBtn.addEventListener('click', handleLogout);
+
+        // Form submissions
+        document.getElementById('login-form-element').addEventListener('submit', handleLogin);
+        document.getElementById('register-form-element').addEventListener('submit', handleRegister);
+
+        // Debug test button
+        debugTestBtn.addEventListener('click', () => {
+            console.log('🔍 Debug test clicked!');
+            showToast('Debug test working! 🎉', 'success');
+        });
+
+        // Check authentication on load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('📱 DOM loaded, checking authentication...');
+            checkAuth();
+        });
+
+        // Authentication functions
+        function checkAuth() {
+            const user = localStorage.getItem('currentUser');
+            if (user) {
+                currentUser = JSON.parse(user);
+                hideAuthModal();
+                loadUserNotes();
+            } else {
+                showAuthModal();
+            }
+        }
+
+        function showAuthModal() {
+            authModal.classList.remove('hidden');
+            userInfo.classList.add('hidden');
+        }
+
+        function hideAuthModal() {
+            authModal.classList.add('hidden');
+            userInfo.classList.remove('hidden');
+            usernameDisplay.textContent = currentUser.username;
+            
+            // Update user profile
+            updateUserProfile();
+        }
+
+        // Local storage authentication (no server needed)
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            // Get users from localStorage
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const user = users.find(u => u.email === email && u.password === password);
+
+            if (user) {
+                currentUser = { id: user.id, username: user.username, email: user.email };
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                hideAuthModal();
+                loadUserNotes();
+                showToast('Login successful!', 'success');
+            } else {
+                showToast('Invalid credentials', 'error');
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+
+            // Validation
+            if (password.length < 6) {
+                showToast('Password must be at least 6 characters long', 'error');
+                return;
+            }
+
+            // Get existing users
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            
+            // Check if user exists
+            if (users.find(u => u.username === username || u.email === email)) {
+                showToast('Username or email already exists', 'error');
+                return;
+            }
+
+            // Create new user
+            const newUser = {
+                id: Date.now().toString(),
+                username,
+                email,
+                password
+            };
+
+            users.push(newUser);
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            // Auto-login
+            currentUser = { id: newUser.id, username: newUser.username, email: newUser.email };
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            hideAuthModal();
+                            showToast('Account created successfully!', 'success');
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('currentUser');
+            currentUser = null;
+            notes = [];
+            allNotes = [];
+            showAuthModal();
+                            showToast('Logged out successfully', 'info');
+        }
+
+        // Core utility functions
         function getYouTubeVideoId(url) {
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
             const match = url.match(regExp);
             return (match && match[2].length === 11) ? match[2] : null;
         }
 
-        function handleLoadVideo() {
-            const videoId = getYouTubeVideoId(urlInput.value);
-            if (!videoId) {
-                showToast("Invalid YouTube URL.", true);
+        // Enhanced password handling with hashing
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hash = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hash))
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('');
+        }
+
+        // Data backup and restore functionality
+        function exportNotes() {
+            if (!currentUser) {
+                showToast('Please login first', 'error');
                 return;
             }
             
-            stopLoop(); // Stop any active loop when loading a new video
+            const userNotes = JSON.parse(localStorage.getItem(`notes_${currentUser.id}`) || '[]');
+            const data = {
+                user: currentUser,
+                notes: userNotes,
+                exportDate: new Date().toISOString(),
+                totalNotes: userNotes.length
+            };
+            
+            const jsonData = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `youtube-notes-${currentUser.username}-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showToast('Notes exported successfully!', 'success');
+        }
 
+        function importNotes() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        
+                        if (!data.user || !data.notes) {
+                            showToast('Invalid backup file format', 'error');
+                            return;
+                        }
+                        
+                        // Check if user exists, create if not
+                        let user = JSON.parse(localStorage.getItem('users') || '[]').find(u => u.username === data.user.username);
+                        if (!user) {
+                            user = {
+                                id: Date.now().toString(),
+                                username: data.user.username,
+                                email: data.user.email,
+                                password: data.user.password
+                            };
+                            const users = JSON.parse(localStorage.getItem('users') || '[]');
+                            users.push(user);
+                            localStorage.setItem('users', JSON.stringify(users));
+                        }
+                        
+                        // Merge notes (avoid duplicates)
+                        const existingNotes = JSON.parse(localStorage.getItem(`notes_${user.id}`) || '[]');
+                        const newNotes = data.notes.filter(note => 
+                            !existingNotes.some(existing => 
+                                existing.videoId === note.videoId && 
+                                existing.startTime === note.startTime && 
+                                existing.text === note.text
+                            )
+                        );
+                        
+                        const allNotes = [...existingNotes, ...newNotes];
+                        localStorage.setItem(`notes_${user.id}`, JSON.stringify(allNotes));
+                        
+                        showToast(`Imported ${newNotes.length} notes successfully!`, 'success');
+                        
+                        // Refresh display if current user
+                        if (currentUser && currentUser.id === user.id) {
+                            loadUserNotes();
+                        }
+                        
+                    } catch (error) {
+                        console.error('Import error:', error);
+                        showToast('Error importing backup file', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+
+        // Load video function
+        async function handleLoadVideo() {
+            const videoId = getYouTubeVideoId(urlInput.value);
+            if (!videoId) {
+                showToast('Please enter a valid YouTube URL', 'error');
+                return;
+            }
+            
+            // Stop any active loop when loading a new video
+            if (typeof stopLoop === 'function') {
+                stopLoop();
+            }
+            
             if (currentVideoId !== videoId) {
                 currentVideoId = videoId;
-                notes = [];
-                renderNotes();
+                currentVideoTitle = await getVideoTitle(videoId);
+                await loadVideoNotes(videoId);
                 resetNoteTaker();
             }
             
-            playerPlaceholder.style.display = 'none';
-
-            if (player) {
+            // Hide placeholder and show player
+            const playerPlaceholder = document.getElementById('player-placeholder');
+            if (playerPlaceholder) {
+                playerPlaceholder.style.display = 'none';
+            }
+            
+            // Load video in player
+            if (typeof player !== 'undefined' && player && typeof player.loadVideoById === 'function') {
                 player.loadVideoById(videoId);
             } else {
-                player = new YT.Player('player', {
-                    videoId: videoId,
-                    playerVars: { 'playsinline': 1, 'rel': 0 },
-                    events: { 'onReady': onPlayerReady }
-                });
+                // Create new player if it doesn't exist
+                if (typeof YT !== 'undefined' && YT.Player) {
+                    player = new YT.Player('player', {
+                        videoId: videoId,
+                        playerVars: { 'playsinline': 1, 'rel': 0 },
+                        events: { 'onReady': onPlayerReady }
+                    });
+                }
             }
-        }
-        
-        function onPlayerReady(event) {
-            noteTaker.classList.remove('hidden');
-        }
-
-        function setTime(type) {
-            if (!player || typeof player.getCurrentTime !== 'function') {
-                showToast("Player not ready.", true);
-                return;
-            }
-            const currentTime = Math.floor(player.getCurrentTime());
-            if (type === 'start') {
-                tempStartTime = currentTime;
-                startTimeDisplay.textContent = formatTime(currentTime);
-            } else {
-                tempEndTime = currentTime;
-                endTimeDisplay.textContent = formatTime(currentTime);
-            }
+            
+            showToast(`Video loaded: ${currentVideoTitle}`, 'success');
         }
 
-        function handleAddNote() {
-            const text = noteText.value.trim();
-            if (!text) {
-                showToast("Note content cannot be empty.", true);
-                return;
-            }
-            if (tempEndTime <= tempStartTime) {
-                showToast("End time must be after start time.", true);
-                return;
-            }
-
-            notes.push({ startTime: tempStartTime, endTime: tempEndTime, text: text });
-            notes.sort((a, b) => a.startTime - b.startTime);
-
-            renderNotes();
-            resetNoteTaker();
-        }
-
-        function renderNotes() {
-            notesList.innerHTML = ''; 
-
-            if (notes.length === 0) {
-                notesList.appendChild(notesPlaceholder);
-                return;
-            }
-
-            notes.forEach((note, index) => {
-                const li = document.createElement('li');
-                li.className = 'bg-white p-4 rounded-lg shadow-sm border border-gray-200';
+        // Enhanced video title fetching (attempts to get real titles)
+        async function getVideoTitle(videoId) {
+            try {
+                // Try to get title from YouTube oEmbed API (limited but works)
+                const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
                 
-                const isLooping = (index === loopingNoteIndex);
-                const replayButtonText = isLooping ? 'Stop Loop' : 'Replay';
-                const replayButtonClass = isLooping ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600';
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.title || `Video ${videoId}`;
+                }
+            } catch (error) {
+                console.log('Could not fetch video title, using fallback');
+            }
+            
+            // Fallback: try to get from iframe if available
+            try {
+                const iframe = document.querySelector('iframe[src*="youtube.com"]');
+                if (iframe && iframe.contentWindow) {
+                    // This is a fallback - YouTube iframe API doesn't expose titles easily
+                    return `Video ${videoId}`;
+                }
+            } catch (error) {
+                console.log('Iframe fallback failed');
+            }
+            
+            return `Video ${videoId}`;
+        }
 
-                const noteContent = `
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div class="flex-grow">
-                            <span class="font-bold text-blue-600">${formatTime(note.startTime)} -> ${formatTime(note.endTime)}</span>
-                            <p class="text-gray-700 mt-1">${escapeHTML(note.text)}</p>
+        // Render current video notes
+        function renderCurrentVideoNotes() {
+            const container = document.getElementById('current-video-notes');
+            if (!container) return;
+            
+            if (!currentVideoId) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">No video loaded</p>';
+                return;
+            }
+            
+            if (notes.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">No notes for this video yet</p>';
+                return;
+            }
+            
+            let notesHTML = '';
+            notes.forEach((note, index) => {
+                notesHTML += `
+                    <div class="bg-gray-50 p-3 rounded-lg border">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="font-mono text-sm text-blue-600">${formatTime(note.startTime)} → ${formatTime(note.endTime)}</span>
+                            <button onclick="deleteNote('${note.id}')" class="text-red-500 hover:text-red-700 text-sm">×</button>
                         </div>
-                        <div class="flex items-center gap-2 flex-shrink-0">
-                            <button data-time="${note.startTime}" class="seek-btn bg-gray-200 text-gray-800 font-medium px-3 py-2 rounded-md hover:bg-gray-300 transition text-sm">Go to</button>
-                            <button data-index="${index}" class="replay-btn ${replayButtonClass} text-white font-medium px-3 py-2 rounded-md transition text-sm">${replayButtonText}</button>
-                            <button data-index="${index}" class="delete-btn text-gray-400 hover:text-red-500 transition p-2 rounded-full">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                        <p class="text-gray-700 text-sm">${escapeHTML(note.text)}</p>
+                        <div class="flex space-x-2 mt-2">
+                            <button onclick="seekToTime(${note.startTime})" class="text-xs bg-blue-100 text-blue-700 py-1 px-2 rounded hover:bg-blue-200 transition">
+                                Go to Start
+                            </button>
+                            <button onclick="playClip(${note.startTime}, ${note.endTime})" class="text-xs bg-green-100 text-green-700 py-1 px-2 rounded hover:bg-green-200 transition">
+                                Play Clip
                             </button>
                         </div>
                     </div>
                 `;
-                li.innerHTML = noteContent;
-                notesList.appendChild(li);
             });
+            
+            container.innerHTML = notesHTML;
+        }
 
-            // Add event listeners to the new buttons
-            document.querySelectorAll('.seek-btn').forEach(btn => btn.addEventListener('click', (e) => player.seekTo(e.target.dataset.time)));
-            document.querySelectorAll('.replay-btn').forEach(btn => btn.addEventListener('click', handleReplayToggle));
-            document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', handleDeleteNote));
+        // Load video notes
+        async function loadVideoNotes(videoId) {
+            if (!currentUser) return;
+            
+            try {
+                // Load from localStorage
+                const userNotes = JSON.parse(localStorage.getItem(`notes_${currentUser.id}`) || '[]');
+                notes = userNotes.filter(note => note.videoId === videoId);
+                renderCurrentVideoNotes();
+            } catch (error) {
+                console.error('Failed to load video notes:', error);
+                showToast('Failed to load video notes', 'error');
+            }
+        }
+
+        // Enhanced handleAddNote with better title handling
+        async function handleAddNote() {
+            if (!currentUser) {
+                showToast('Please login first', 'error');
+                return;
+            }
+
+            const videoId = getYouTubeVideoId(urlInput.value);
+            if (!videoId) {
+                showToast('Please enter a valid YouTube URL', 'error');
+                return;
+            }
+
+            const startTime = parseInt(startTimeDisplay.textContent.split(':')[0]) * 60 + parseInt(startTimeDisplay.textContent.split(':')[1]);
+            const endTime = parseInt(endTimeDisplay.textContent.split(':')[0]) * 60 + parseInt(endTimeDisplay.textContent.split(':')[1]);
+            const text = noteText.value.trim();
+
+            if (!text) {
+                showToast('Please enter note text', 'error');
+                return;
+            }
+
+            if (startTime >= endTime) {
+                showToast('Start time must be before end time', 'error');
+                return;
+            }
+
+            // Try to get real video title
+            const videoTitle = await getVideoTitle(videoId);
+
+            const note = {
+                id: Date.now().toString(),
+                videoId,
+                videoTitle,
+                startTime,
+                endTime,
+                text: text.trim(),
+                userId: currentUser.id,
+                createdAt: new Date().toISOString()
+            };
+
+            // Add to current video notes
+            notes.push(note);
+            
+            // Add to all user notes
+            const userNotes = JSON.parse(localStorage.getItem(`notes_${currentUser.id}`) || '[]');
+            userNotes.push(note);
+            localStorage.setItem(`notes_${currentUser.id}`, JSON.stringify(userNotes));
+
+            // Clear form
+            noteText.value = '';
+            tempStartTime = 0;
+            tempEndTime = 0;
+            startTimeDisplay.textContent = '00:00';
+            endTimeDisplay.textContent = '00:00';
+
+            // Update displays
+            renderCurrentVideoNotes();
+            renderAllNotesSidebar();
+            updateUserProfile();
+
+            showToast('Note added successfully!', 'success');
+        }
+
+        // Load user's notes from localStorage
+        async function loadUserNotes() {
+            if (!currentUser) return;
+            
+            try {
+                // Load from localStorage
+                const userNotes = JSON.parse(localStorage.getItem(`notes_${currentUser.id}`) || '[]');
+                allNotes = userNotes;
+                notes = allNotes.filter(note => note.videoId === currentVideoId);
+                renderNotes();
+                updateUserProfile();
+                renderAllNotesSidebar();
+            } catch (error) {
+                console.error('Failed to load notes:', error);
+            }
+        }
+        
+        // Update user profile display
+        function updateUserProfile() {
+            if (!currentUser) return;
+            
+            // Update profile info
+            document.getElementById('profile-username').textContent = currentUser.username;
+            document.getElementById('profile-email').textContent = currentUser.email;
+            document.getElementById('user-avatar').textContent = currentUser.username.charAt(0).toUpperCase();
+            
+            // Update stats
+            const userNotes = JSON.parse(localStorage.getItem(`notes_${currentUser.id}`) || '[]');
+            const totalNotes = userNotes.length;
+            const uniqueVideos = [...new Set(userNotes.map(note => note.videoId))].length;
+            
+            document.getElementById('total-notes').textContent = totalNotes;
+            document.getElementById('total-videos').textContent = uniqueVideos;
+            
+            // Add export/import buttons if they don't exist
+            const profileActions = document.getElementById('profile-actions');
+            if (profileActions && !profileActions.querySelector('.export-btn')) {
+                profileActions.innerHTML = `
+                    <button onclick="exportNotes()" class="export-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                        📤 Export Notes
+                    </button>
+                    <button onclick="importNotes()" class="import-btn bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm ml-2">
+                        📥 Import Notes
+                    </button>
+                `;
+            }
+        }
+        
+        // Render all notes in sidebar
+        function renderAllNotesSidebar() {
+            const sidebar = document.getElementById('all-notes-sidebar');
+            if (!sidebar) return;
+            
+            if (allNotes.length === 0) {
+                sidebar.innerHTML = '<p class="text-gray-500 text-center py-6 text-sm">No notes yet. Start by loading a video!</p>';
+                return;
+            }
+            
+            // Group notes by video
+            const notesByVideo = {};
+            allNotes.forEach(note => {
+                if (!notesByVideo[note.videoId]) {
+                    notesByVideo[note.videoId] = [];
+                }
+                notesByVideo[note.videoId].push(note);
+            });
+            
+            let sidebarHTML = '';
+            Object.entries(notesByVideo).forEach(([videoId, videoNotes]) => {
+                const videoTitle = videoNotes[0].videoTitle || `Video ${videoId}`;
+                const noteCount = videoNotes.length;
+                
+                sidebarHTML += `
+                    <div class="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-semibold text-gray-800 text-sm truncate" title="${videoTitle}">${videoTitle}</h4>
+                            <span class="text-xs text-gray-500 bg-white px-2 py-1 rounded-full">${noteCount} note${noteCount > 1 ? 's' : ''}</span>
+                        </div>
+                        <div class="space-y-2">
+                            ${videoNotes.slice(0, 3).map(note => `
+                                <div class="text-xs text-gray-600 bg-white p-2 rounded border">
+                                    <div class="font-medium">${formatTime(note.startTime)} → ${formatTime(note.endTime)}</div>
+                                    <div class="truncate" title="${note.text}">${note.text}</div>
+                                </div>
+                            `).join('')}
+                            ${videoNotes.length > 3 ? `<div class="text-xs text-gray-500 text-center">+${videoNotes.length - 3} more</div>` : ''}
+                        </div>
+                        <button onclick="loadVideoById('${videoId}')" class="w-full mt-2 text-xs bg-blue-100 text-blue-700 py-1 px-2 rounded hover:bg-blue-200 transition">
+                            Load Video
+                        </button>
+                    </div>
+                `;
+            });
+            
+            sidebar.innerHTML = sidebarHTML;
+        }
+        
+        // Load video by ID (for sidebar buttons)
+        function loadVideoById(videoId) {
+            // Find a note with this video ID to get the title
+            const videoNote = allNotes.find(note => note.videoId === videoId);
+            if (videoNote) {
+                currentVideoTitle = videoNote.videoTitle;
+                // Update the URL input to show the video ID
+                document.getElementById('youtube-url').value = `https://www.youtube.com/watch?v=${videoId}`;
+                // Load the video
+                handleLoadVideo();
+            }
+        }
+        
+        // Delete note function
+        async function deleteNote(noteId) {
+            if (!currentUser) {
+                showToast("Please log in to delete notes.", 'error');
+                return;
+            }
+
+            try {
+                // Remove from arrays
+                notes = notes.filter(note => note.id !== noteId);
+                allNotes = allNotes.filter(note => note.id !== noteId);
+                
+                // Update localStorage
+                const userNotes = JSON.parse(localStorage.getItem(`notes_${currentUser.id}`) || '[]');
+                const updatedNotes = userNotes.filter(note => note.id !== noteId);
+                localStorage.setItem(`notes_${currentUser.id}`, JSON.stringify(updatedNotes));
+                
+                // Update displays
+                renderCurrentVideoNotes();
+                renderAllNotesSidebar();
+                updateUserProfile();
+                
+                showToast('Note deleted successfully!', 'success');
+            } catch (error) {
+                console.error('Error deleting note:', error);
+                showToast('Failed to delete note.', 'error');
+            }
+        }
+
+        // Helper functions for video controls
+        function seekToTime(time) {
+            if (player && typeof player.seekTo === 'function') {
+                player.seekTo(time);
+                showToast(`Seeking to ${formatTime(time)}`, 'info');
+            }
+        }
+        
+        function playClip(startTime, endTime) {
+            if (player && typeof player.seekTo === 'function') {
+                player.seekTo(startTime);
+                player.playVideo();
+                
+                // Set up loop for this clip
+                stopLoop();
+                startLoop(startTime, endTime, -1);
+                showToast(`Playing clip from ${formatTime(startTime)} to ${formatTime(endTime)}`, 'info');
+            }
+        }
+
+        function renderNotes() {
+            // This function is now deprecated since we use the new sidebar system
+            // But we'll keep it for backward compatibility and just update the current video notes
+            renderCurrentVideoNotes();
         }
         
         function handleReplayToggle(e) {
@@ -323,16 +954,52 @@
             loopingNoteIndex = -1;
         }
 
-        function handleDeleteNote(e) {
-            const index = e.currentTarget.dataset.index;
-            if (index == loopingNoteIndex) {
-                stopLoop();
+        async function handleDeleteNote(e) {
+            const noteId = e.currentTarget.dataset.id;
+            
+            if (!currentUser) {
+                showToast("Please log in to delete notes.", 'error');
+                return;
             }
-            notes.splice(index, 1);
-            renderNotes();
+
+            try {
+                // Remove from arrays
+                notes = notes.filter(note => note.id !== noteId);
+                allNotes = allNotes.filter(note => note.id !== noteId);
+                
+                // Update localStorage
+                const userNotes = JSON.parse(localStorage.getItem(`notes_${currentUser.id}`) || '[]');
+                const updatedNotes = userNotes.filter(note => note.id !== noteId);
+                localStorage.setItem(`notes_${currentUser.id}`, JSON.stringify(updatedNotes));
+                
+                // Update displays
+                renderCurrentVideoNotes();
+                renderAllNotesSidebar();
+                updateUserProfile();
+                
+                showToast('Note deleted successfully!', 'success');
+            } catch (error) {
+                showToast('Failed to delete note. Please try again.', 'error');
+            }
         }
 
-        // 5. Helper and UI Functions
+        // Set time functions
+        function setTime(type) {
+            if (typeof player !== 'undefined' && player && typeof player.getCurrentTime === 'function') {
+                const currentTime = Math.floor(player.getCurrentTime());
+                if (type === 'start') {
+                    tempStartTime = currentTime;
+                    startTimeDisplay.textContent = formatTime(currentTime);
+                } else {
+                    tempEndTime = currentTime;
+                    endTimeDisplay.textContent = formatTime(currentTime);
+                }
+            } else {
+                showToast('Player not ready. Please wait for video to load.', 'warning');
+            }
+        }
+
+        // Helper and UI Functions
         function resetNoteTaker() {
             noteText.value = '';
             tempStartTime = 0;
@@ -347,15 +1014,36 @@
             return `${minutes}:${seconds}`;
         }
 
-        function showToast(message, isError = false) {
-            toast.textContent = message;
-            toast.className = `fixed bottom-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 ${isError ? 'bg-red-600' : 'bg-gray-900'}`;
+        function showToast(message, type = 'info') {
+            console.log('🔔 showToast called:', { message, type });
+            console.log('🔍 Toast element found:', !!toast);
+            
+            if (!toast) {
+                console.error('❌ Toast element not found!');
+                return;
+            }
+            
+            // Map type to colors and icons
+            const toastConfig = {
+                'success': { bg: 'bg-green-600', icon: '✅' },
+                'error': { bg: 'bg-red-600', icon: '❌' },
+                'warning': { bg: 'bg-yellow-600', icon: '⚠️' },
+                'info': { bg: 'bg-blue-600', icon: 'ℹ️' }
+            };
+            
+            const config = toastConfig[type] || toastConfig.info;
+            
+            toast.innerHTML = `${config.icon} ${message}`;
+            toast.className = `fixed bottom-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 ${config.bg}`;
             toast.classList.remove('opacity-0', 'translate-y-2');
             toast.classList.add('opacity-100', 'translate-y-0');
+            
+            console.log('✅ Toast displayed:', message);
 
             setTimeout(() => {
                 toast.classList.remove('opacity-100', 'translate-y-0');
                 toast.classList.add('opacity-0', 'translate-y-2');
+                console.log('🔄 Toast hidden after timeout');
             }, 3000);
         }
 
@@ -364,43 +1052,52 @@
             p.appendChild(document.createTextNode(str));
             return p.innerHTML;
         }
-
-        // 6. Resizable Gutter Logic
-        const gutter = document.getElementById('gutter');
-        const leftPanel = document.getElementById('left-panel');
-        const rightPanel = document.getElementById('right-panel');
-
-        gutter.addEventListener('mousedown', function(e) {
-            e.preventDefault(); // Prevent text selection
-            window.addEventListener('mousemove', resize);
-            window.addEventListener('mouseup', stopResize);
-        });
-
-        function resize(e) {
-            const container = document.getElementById('resizable-container');
-            const containerRect = container.getBoundingClientRect();
-            const leftPanelMinWidth = 200;
-            const rightPanelMinWidth = 200;
-
-            // Calculate new width for the left panel
-            let newLeftWidth = e.clientX - containerRect.left;
-
-            // Enforce minimum width constraints
-            if (newLeftWidth < leftPanelMinWidth) {
-                newLeftWidth = leftPanelMinWidth;
-            }
-            if (container.offsetWidth - newLeftWidth - gutter.offsetWidth < rightPanelMinWidth) {
-                newLeftWidth = container.offsetWidth - rightPanelMinWidth - gutter.offsetWidth;
-            }
-
-            leftPanel.style.width = newLeftWidth + 'px';
+        
+        // Form error handling functions
+        function clearFormErrors() {
+            const errorElements = ['username-error', 'email-error', 'password-error'];
+            errorElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.classList.add('hidden');
+                    element.textContent = '';
+                }
+            });
+        }
+        
+        function displayFormErrors(errors) {
+            console.log('🚨 Displaying form errors:', errors);
+            
+            errors.forEach(error => {
+                const errorElement = document.getElementById(`${error.field}-error`);
+                if (errorElement) {
+                    errorElement.textContent = error.message;
+                    errorElement.classList.remove('hidden');
+                }
+            });
         }
 
-        function stopResize() {
-            window.removeEventListener('mousemove', resize);
-            window.removeEventListener('mouseup', stopResize);
+        // YouTube IFrame Player API Setup
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        // YouTube API Ready
+        function onYouTubeIframeAPIReady() {
+            console.log('🎬 YouTube IFrame API Ready');
         }
 
+        // Player ready event
+        function onPlayerReady(event) {
+            console.log('🎬 Player ready');
+            const noteTaker = document.getElementById('note-taker');
+            if (noteTaker) {
+                noteTaker.classList.remove('hidden');
+            }
+        }
+
+        console.log('✅ Static version JavaScript loaded successfully');
     </script>
 </body>
 </html>
