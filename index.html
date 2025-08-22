@@ -719,6 +719,8 @@
 
         // Load video notes
         async function loadVideoNotes(videoId) {
+            console.log('🔍 loadVideoNotes called with videoId:', videoId);
+            
             // Check if user is authenticated via cloud or localStorage
             let user = currentUser;
             if (!user && USE_CLOUD) {
@@ -726,6 +728,7 @@
                 if (cloudUser) {
                     user = JSON.parse(cloudUser);
                     currentUser = user; // Set currentUser for future use
+                    console.log('✅ User authenticated via cloud:', user.username);
                 }
             }
             if (!user) {
@@ -733,11 +736,12 @@
                 if (localUser) {
                     user = JSON.parse(localUser);
                     currentUser = user; // Set currentUser for future use
+                    console.log('✅ User authenticated via localStorage:', user.username);
                 }
             }
             
             if (!user) {
-                console.log('No user authenticated, cannot load video notes');
+                console.log('❌ No user authenticated, cannot load video notes');
                 return;
             }
             
@@ -753,19 +757,21 @@
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     
-                    if (response.ok) {
-                        const data = await response.json();
-                        notes = data.notes || [];
-                        renderCurrentVideoNotes();
-                    } else {
-                        console.log('Failed to fetch cloud notes:', response.status);
-                        notes = [];
-                        renderCurrentVideoNotes();
-                    }
+                                    if (response.ok) {
+                    const data = await response.json();
+                    notes = data.notes || [];
+                    console.log('✅ Cloud notes loaded:', notes.length, 'notes');
+                    renderCurrentVideoNotes();
+                } else {
+                    console.log('❌ Failed to fetch cloud notes:', response.status);
+                    notes = [];
+                    renderCurrentVideoNotes();
+                }
                 } else {
                     // localStorage fallback
                     const userNotes = JSON.parse(localStorage.getItem(`notes_${user.id}`) || '[]');
                     notes = userNotes.filter(note => note.videoId === videoId);
+                    console.log('✅ localStorage notes loaded:', notes.length, 'notes for video', videoId);
                     renderCurrentVideoNotes();
                 }
             } catch (error) {
@@ -1070,10 +1076,65 @@
         }
 
         // Load video by ID
-        function loadVideoById(videoId) {
+        async function loadVideoById(videoId) {
+            console.log('🔍 loadVideoById called with videoId:', videoId);
+            
+            // Stop any active loop when loading a new video
+            if (typeof stopLoop === 'function') {
+                stopLoop();
+            }
+            
             currentVideoId = videoId;
-            urlInput.value = `https://www.youtube.com/watch?v=${videoId}`;
-            handleLoadVideo();
+            
+            // Get video title from existing notes
+            const videoNotes = allNotes.filter(note => note.videoId === videoId);
+            if (videoNotes.length > 0) {
+                currentVideoTitle = videoNotes[0].videoTitle;
+                console.log('Using existing video title:', currentVideoTitle);
+            } else {
+                // Fallback to fetching title
+                currentVideoTitle = await getVideoTitle(videoId);
+                console.log('Fetched video title:', currentVideoTitle);
+            }
+            
+            // Load notes for this video
+            await loadVideoNotes(videoId);
+            
+            // Reset note taker
+            resetNoteTaker();
+            
+            // Hide placeholder and show player
+            if (playerPlaceholder) {
+                playerPlaceholder.style.display = 'none';
+            }
+            
+            // Load video in player
+            if (typeof player !== 'undefined' && player && typeof player.loadVideoById === 'function') {
+                player.loadVideoById(videoId);
+                console.log('✅ Video loaded in existing player');
+            } else {
+                // Create new player if it doesn't exist
+                if (typeof YT !== 'undefined' && YT.Player) {
+                    player = new YT.Player('player', {
+                        videoId: videoId,
+                        width: '100%',
+                        height: '100%',
+                        playerVars: { 
+                            'playsinline': 1, 
+                            'rel': 0,
+                            'modestbranding': 1,
+                            'showinfo': 0
+                        },
+                        events: { 'onPlayerReady': onPlayerReady }
+                    });
+                    console.log('✅ New player created');
+                }
+            }
+            
+            // Show toolbar
+            showToolbar();
+            
+            showToast(`Video loaded: ${currentVideoTitle}`, 'success');
         }
 
         // Delete note function
