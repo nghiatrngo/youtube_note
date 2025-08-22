@@ -1223,6 +1223,14 @@
                         notes = data.notes || [];
                         console.log('✅ Cloud notes loaded:', notes.length, 'notes');
                         console.log('📝 Notes data structure:', notes);
+                        if (notes.length > 0) {
+                            console.log('🔍 First note ID details:', {
+                                id: notes[0].id,
+                                _id: notes[0]._id,
+                                hasOwnProperty_id: notes[0].hasOwnProperty('_id'),
+                                hasOwnProperty_id: notes[0].hasOwnProperty('id')
+                            });
+                        }
                         console.log('🔍 Looking for videoId:', videoId);
                         console.log('📊 allNotes length:', allNotes ? allNotes.length : 'undefined');
                         renderCurrentVideoNotes();
@@ -1392,6 +1400,12 @@
                 const noteId = getNoteId(note);
                 console.log(`Rendering note ${index}:`, note);
                 console.log(`📝 Note ID for rendering: ${noteId}`);
+                console.log(`🔍 Note object details:`, {
+                    id: note.id,
+                    _id: note._id,
+                    text: note.text,
+                    videoId: note.videoId
+                });
                 notesHTML += `
                     <div class="bg-gray-50 p-3 rounded-lg border" data-note-id="${noteId}">
                         <div class="flex justify-between items-start mb-2">
