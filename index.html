@@ -73,6 +73,11 @@
                     </svg>
                 </button>
                 <h1 class="text-xl font-bold text-gray-800">YouTube Note Clipper</h1>
+                
+                <!-- Load New Video Button -->
+                <button id="toolbar-load-video" class="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm">
+                    🔄 Load New Video
+                </button>
             </div>
             
             <!-- User Info (hidden by default) -->
@@ -184,9 +189,15 @@
                 <!-- Video Toolbar (hidden by default) -->
                 <div id="video-toolbar" class="hidden bg-white border border-gray-200 rounded-lg p-3 mb-4 shadow-sm">
                     <div class="flex flex-wrap items-center gap-3">
-                        <!-- Load Video Button -->
-                        <button id="toolbar-load-video" class="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-                            🔄 Load New Video
+                        <!-- Video Playback Controls -->
+                        <button id="toolbar-play-pause" class="bg-green-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-600 transition">
+                            ▶️ Play
+                        </button>
+                        <button id="toolbar-frame-back" class="bg-gray-500 text-white font-semibold px-3 py-2 rounded-lg hover:bg-gray-600 transition">
+                            ⏪ -1 Frame
+                        </button>
+                        <button id="toolbar-frame-forward" class="bg-gray-500 text-white font-semibold px-3 py-2 rounded-lg hover:bg-gray-600 transition">
+                            ⏩ +1 Frame
                         </button>
                         
                         <!-- Divider -->
@@ -286,6 +297,7 @@
         let sidebarToggle, sidebar, mainContent;
         let urlInputSection, videoToolbar, toolbarLoadVideo, toolbarSetStart, toolbarSetEnd;
         let toolbarStartTime, toolbarEndTime, toolbarStopLooping, toolbarLoopingStatus;
+        let toolbarPlayPause, toolbarFrameBack, toolbarFrameForward;
 
         // Check authentication on load
         document.addEventListener('DOMContentLoaded', () => {
@@ -324,6 +336,9 @@
             toolbarEndTime = document.getElementById('toolbar-end-time');
             toolbarStopLooping = document.getElementById('toolbar-stop-looping');
             toolbarLoopingStatus = document.getElementById('toolbar-looping-status');
+            toolbarPlayPause = document.getElementById('toolbar-play-pause');
+            toolbarFrameBack = document.getElementById('toolbar-frame-back');
+            toolbarFrameForward = document.getElementById('toolbar-frame-forward');
             
             // Add event listeners
             if (loadVideoBtn) loadVideoBtn.addEventListener('click', handleLoadVideo);
@@ -355,6 +370,9 @@
             if (toolbarSetStart) toolbarSetStart.addEventListener('click', () => setTime('start'));
             if (toolbarSetEnd) toolbarSetEnd.addEventListener('click', () => setTime('end'));
             if (toolbarStopLooping) toolbarStopLooping.addEventListener('click', stopLoop);
+            if (toolbarPlayPause) toolbarPlayPause.addEventListener('click', togglePlayPause);
+            if (toolbarFrameBack) toolbarFrameBack.addEventListener('click', () => seekFrame(-1));
+            if (toolbarFrameForward) toolbarFrameForward.addEventListener('click', () => seekFrame(1));
             
             // Note taking event listeners
             if (addNoteBtn) {
@@ -1301,6 +1319,52 @@
             }
         }
 
+        // Video Playback Control Functions
+        function togglePlayPause() {
+            if (!player || typeof player.getPlayerState !== 'function') {
+                showToast('Player not ready', 'warning');
+                return;
+            }
+            
+            const playerState = player.getPlayerState();
+            if (playerState === 1) { // Playing
+                player.pauseVideo();
+                if (toolbarPlayPause) {
+                    toolbarPlayPause.innerHTML = '▶️ Play';
+                    toolbarPlayPause.className = 'bg-green-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-600 transition';
+                }
+            } else { // Paused, ended, or buffering
+                player.playVideo();
+                if (toolbarPlayPause) {
+                    toolbarPlayPause.innerHTML = '⏸️ Pause';
+                    toolbarPlayPause.className = 'bg-yellow-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-yellow-600 transition';
+                }
+            }
+        }
+        
+        function seekFrame(direction) {
+            if (!player || typeof player.getCurrentTime !== 'function') {
+                showToast('Player not ready', 'warning');
+                return;
+            }
+            
+            // YouTube videos are typically 30fps, so 1 frame = 1/30 second
+            const frameTime = 1/30;
+            const currentTime = player.getCurrentTime();
+            const newTime = currentTime + (direction * frameTime);
+            
+            // Ensure we don't go below 0
+            if (newTime < 0) {
+                player.seekTo(0);
+            } else {
+                player.seekTo(newTime);
+            }
+            
+            // Show feedback
+            const frameText = direction > 0 ? '+1 frame' : '-1 frame';
+            showToast(`Seeked ${frameText}`, 'info');
+        }
+        
         // Helper and UI Functions
         function resetNoteTaker() {
             noteText.value = '';
@@ -1376,6 +1440,13 @@
         // YouTube API Ready
         function onYouTubeIframeAPIReady() {
             console.log('🎬 YouTube IFrame API Ready');
+            
+            // Set up periodic button state updates
+            setInterval(() => {
+                if (player && typeof player.getPlayerState === 'function') {
+                    updatePlayPauseButton();
+                }
+            }, 1000); // Update every second
         }
 
         // Player ready event
@@ -1383,6 +1454,23 @@
             console.log('🎬 Player ready');
             // Note taker is now always visible, no need to show/hide
             console.log('✅ Note taking area is ready');
+            
+            // Set initial play/pause button state
+            updatePlayPauseButton();
+        }
+        
+        // Update play/pause button state based on player state
+        function updatePlayPauseButton() {
+            if (!toolbarPlayPause || !player || typeof player.getPlayerState !== 'function') return;
+            
+            const playerState = player.getPlayerState();
+            if (playerState === 1) { // Playing
+                toolbarPlayPause.innerHTML = '⏸️ Pause';
+                toolbarPlayPause.className = 'bg-yellow-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-yellow-600 transition';
+            } else { // Paused, ended, or buffering
+                toolbarPlayPause.innerHTML = '▶️ Play';
+                toolbarPlayPause.className = 'bg-green-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-600 transition';
+            }
         }
 
         console.log('✅ Cloud version JavaScript loaded successfully');
