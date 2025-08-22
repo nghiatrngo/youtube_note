@@ -29,34 +29,30 @@
             width: 100%;
             height: 100%;
         }
+        
+        /* Sidebar animations */
+        #sidebar {
+            transform: translateX(0);
+            width: 20rem; /* 320px */
+        }
+        
+        #sidebar.sidebar-collapsed {
+            transform: translateX(-100%);
+            width: 0;
+            overflow: hidden;
+        }
+        
+        /* Ensure proper height */
+        .h-full {
+            height: calc(100vh - 80px); /* Adjust for header height */
+        }
+        
+        /* Main content area */
+        .main-content-expanded {
+            margin-left: 0;
+        }
 
-        /* Styles for the resizable columns */
-        #resizable-container {
-            display: flex;
-            width: 100%;
-            height: auto;
-        }
-        #left-panel, #right-panel {
-            min-width: 200px; /* Prevent columns from becoming too small */
-            padding: 1rem;
-        }
-        #left-panel {
-            width: 50%;
-        }
-        #right-panel {
-            flex-grow: 1; /* Take up remaining space */
-        }
-        #gutter {
-            width: 10px;
-            cursor: col-resize;
-            background-color: #e5e7eb; /* gray-200 */
-            flex-shrink: 0;
-            border-left: 1px solid #d1d5db; /* gray-300 */
-            border-right: 1px solid #d1d5db; /* gray-300 */
-        }
-        #gutter:hover {
-            background-color: #d1d5db; /* gray-300 */
-        }
+
 
         .auth-form {
             max-width: 400px;
@@ -94,14 +90,18 @@
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="register-username">Username</label>
                         <input type="text" id="register-username" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                        <div id="username-error" class="hidden text-red-600 text-sm mt-1"></div>
                     </div>
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="register-email">Email</label>
                         <input type="email" id="register-email" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                        <div id="email-error" class="hidden text-red-600 text-sm mt-1"></div>
                     </div>
                     <div class="mb-6">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="register-password">Password</label>
                         <input type="password" id="register-password" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                        <div id="password-error" class="hidden text-red-600 text-sm mt-1"></div>
+                        <p class="text-gray-500 text-xs mt-1">Password must be at least 6 characters long</p>
                     </div>
                     <button type="submit" class="w-full bg-green-600 text-white font-semibold py-3 rounded-lg hover:bg-green-700 transition">Create Account</button>
                 </form>
@@ -113,7 +113,7 @@
         </div>
     </div>
 
-    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+    <div class="w-full h-full">
         <!-- Header with User Info -->
         <header class="text-center mb-8">
             <div class="flex justify-between items-center mb-4">
@@ -125,70 +125,132 @@
             </div>
             <h1 class="text-4xl font-bold text-gray-900">YouTube Note Clipper</h1>
             <p class="text-lg text-gray-600 mt-2">Create timestamped clips and notes from any YouTube video.</p>
+            <button id="debug-test" class="mt-2 bg-yellow-500 text-black px-4 py-2 rounded-lg text-sm">🔍 Debug Test</button>
         </header>
 
-        <main class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
-            <!-- URL Input Section -->
-            <div class="flex flex-col sm:flex-row gap-4 mb-6">
-                <input type="text" id="youtube-url" class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Enter YouTube URL (e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ)">
-                <button id="load-video" class="bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    Load Video
-                </button>
-            </div>
-
-            <div id="resizable-container">
-                <!-- Left Panel: Video and Notes Section -->
-                <div id="left-panel">
-                    <!-- YouTube Player -->
-                    <div id="player-container" class="video-container bg-black rounded-lg overflow-hidden shadow-inner mb-6">
-                         <div id="player-placeholder" class="w-full h-full flex items-center justify-center text-gray-400">
-                            <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            <span class="ml-4">Video will appear here</span>
-                        </div>
-                        <div id="player"></div>
-                    </div>
-
-                    <!-- Note Taking Area -->
-                    <div id="note-taker" class="hidden bg-gray-50 p-4 rounded-lg">
-                        <h3 class="text-xl font-semibold mb-3">Create a Clip</h3>
-                        <div class="grid grid-cols-2 gap-4 mb-3">
-                            <button id="set-start-time" class="bg-cyan-500 text-white font-semibold py-2 rounded-lg hover:bg-cyan-600 transition">Set Start</button>
-                            <button id="set-end-time" class="bg-teal-500 text-white font-semibold py-2 rounded-lg hover:bg-teal-600 transition">Set End</button>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4 mb-3 text-center">
-                            <div>
-                                <label class="text-sm font-medium text-gray-600">Start Time</label>
-                                <p id="start-time-display" class="font-mono text-lg p-2 bg-white border rounded-md">00:00</p>
-                            </div>
-                            <div>
-                                <label class="text-sm font-medium text-gray-600">End Time</label>
-                                <p id="end-time-display" class="font-mono text-lg p-2 bg-white border rounded-md">00:00</p>
-                            </div>
-                        </div>
-                        <textarea id="note-text" class="w-full p-3 border border-gray-300 rounded-lg h-24 focus:ring-2 focus:ring-blue-500" placeholder="Write your note for this clip..."></textarea>
-                        <button id="add-note" class="mt-3 w-full bg-green-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-green-600 transition shadow-md">
-                            Add Note & Clip
+        <div class="flex h-full">
+            <!-- Collapsible Left Sidebar -->
+            <div id="sidebar" class="bg-white border-r border-gray-200 w-80 transition-all duration-300 ease-in-out">
+                <!-- Sidebar Header -->
+                <div class="p-4 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-800">User Profile</h3>
+                        <button id="sidebar-toggle" class="text-gray-500 hover:text-gray-700">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
                         </button>
                     </div>
                 </div>
 
-                <!-- Gutter for resizing -->
-                <div id="gutter"></div>
-
-                <!-- Right Panel: Notes List Section -->
-                <div id="right-panel" class="flex flex-col">
-                    <div class="flex justify-between items-center mb-4 border-b pb-2">
-                        <h2 class="text-2xl font-bold">My Notes & Clips</h2>
-                        <button id="load-notes" class="text-blue-600 hover:text-blue-800 text-sm">Refresh</button>
+                <!-- User Profile Section -->
+                <div class="p-4">
+                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg p-4 mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-xl font-bold">
+                                <span id="user-avatar">U</span>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-bold" id="profile-username">Username</h2>
+                                <p class="text-blue-100 text-sm" id="profile-email">email@example.com</p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-4 mt-3 text-sm">
+                            <div>
+                                <span class="font-bold" id="total-notes">0</span>
+                                <span class="text-blue-100"> notes</span>
+                            </div>
+                            <div>
+                                <span class="font-bold" id="total-videos">0</span>
+                                <span class="text-blue-100"> videos</span>
+                            </div>
+                        </div>
                     </div>
-                    <div id="notes-list-container" class="flex-grow bg-gray-50 p-4 rounded-lg overflow-y-auto h-96 max-h-[600px]">
-                        <ul id="notes-list" class="space-y-4">
-                           <li id="notes-placeholder" class="text-center text-gray-500 py-16">Your notes and clips will be displayed here.</li>
-                        </ul>
+
+                    <!-- All Notes Sidebar -->
+                    <div class="bg-white border border-gray-200 rounded-lg p-3">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="text-sm font-semibold text-gray-800">All My Notes</h3>
+                            <button id="refresh-all-notes" class="text-blue-600 hover:text-blue-800 text-xs">Refresh</button>
+                        </div>
+                        <div id="all-notes-sidebar" class="space-y-3 max-h-80 overflow-y-auto">
+                            <p class="text-gray-500 text-center py-6 text-sm">Loading notes...</p>
+                        </div>
                     </div>
                 </div>
             </div>
-        </main>
+
+            <!-- Main Content Area -->
+            <div class="flex-1 flex flex-col min-w-0">
+                <!-- Sidebar Toggle Button (when collapsed) -->
+                <div id="sidebar-toggle-collapsed" class="hidden p-4">
+                    <button id="sidebar-expand" class="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Main Content -->
+                <main class="flex-1 bg-white p-4 lg:p-6 w-full">
+                    <!-- URL Input Section -->
+                    <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                        <input type="text" id="youtube-url" class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Enter YouTube URL (e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ)">
+                        <button id="load-video" class="bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Load Video
+                        </button>
+                    </div>
+
+                    <!-- Video and Notes Section -->
+                    <div class="grid grid-cols-1 xl:grid-cols-4 gap-4 lg:gap-6">
+                        <!-- Video Player and Note Taking -->
+                        <div class="xl:col-span-3">
+                            <!-- YouTube Player -->
+                            <div id="player-container" class="video-container bg-black rounded-lg overflow-hidden shadow-inner mb-6">
+                                 <div id="player-placeholder" class="w-full h-full flex items-center justify-center text-gray-400">
+                                    <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    <span class="ml-4">Video will appear here</span>
+                                </div>
+                                <div id="player"></div>
+                            </div>
+
+                            <!-- Note Taking Area -->
+                            <div id="note-taker" class="hidden bg-gray-50 p-4 rounded-lg">
+                                <h3 class="text-xl font-semibold mb-3">Create a Clip</h3>
+                                <div class="grid grid-cols-2 gap-4 mb-3">
+                                    <button id="set-start-time" class="bg-cyan-500 text-white font-semibold py-2 rounded-lg hover:bg-cyan-600 transition">Set Start</button>
+                                    <button id="set-end-time" class="bg-teal-500 text-white font-semibold py-2 rounded-lg hover:bg-teal-600 transition">Set End</button>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 mb-3 text-center">
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-600">Start Time</label>
+                                        <p id="start-time-display" class="font-mono text-lg p-2 bg-white border rounded-md">00:00</p>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-600">End Time</label>
+                                        <p id="end-time-display" class="font-mono text-lg p-2 bg-white border rounded-md">00:00</p>
+                                    </div>
+                                </div>
+                                <textarea id="note-text" class="w-full p-3 border border-gray-300 rounded-lg h-24 focus:ring-2 focus:ring-blue-500" placeholder="Write your note for this clip..."></textarea>
+                                <button id="add-note" class="mt-3 w-full bg-green-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-green-600 transition shadow-md">
+                                    Add Note & Clip
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Current Video Notes -->
+                        <div class="xl:col-span-1">
+                            <div class="bg-white border border-gray-200 rounded-lg p-4 h-fit">
+                                <h3 class="text-lg font-semibold mb-3 text-gray-800">Current Video Notes</h3>
+                                <div id="current-video-notes" class="space-y-3 max-h-96 overflow-y-auto">
+                                    <p class="text-gray-500 text-center py-8">No video loaded</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
     </div>
 
     <!-- Toast Notification -->
@@ -203,6 +265,7 @@
         let currentVideoId = '';
         let currentVideoTitle = '';
         let notes = [];
+        let allNotes = []; // All user notes across all videos
         let tempStartTime = 0;
         let tempEndTime = 0;
         let authToken = localStorage.getItem('authToken');
@@ -214,9 +277,76 @@
 
         // Check authentication on page load
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 DOM Content Loaded - Setting up event listeners...');
+            
+            // Set up form event listeners
+            const showRegisterBtn = document.getElementById('show-register');
+            const showLoginBtn = document.getElementById('show-login');
+            const loginForm = document.getElementById('login-form-element');
+            const registerForm = document.getElementById('register-form-element');
+            const logoutBtn = document.getElementById('logout-btn');
+            
+            console.log('🔍 Found elements:', {
+                showRegisterBtn: !!showRegisterBtn,
+                showLoginBtn: !!showLoginBtn,
+                loginForm: !!loginForm,
+                registerForm: !!registerForm,
+                logoutBtn: !!logoutBtn
+            });
+            
+            if (showRegisterBtn) {
+                showRegisterBtn.addEventListener('click', () => {
+                    console.log('📝 Show register button clicked');
+                    document.getElementById('login-form').classList.add('hidden');
+                    document.getElementById('register-form').classList.remove('hidden');
+                });
+            }
+            
+            if (showLoginBtn) {
+                showLoginBtn.addEventListener('click', () => {
+                    console.log('🔑 Show login button clicked');
+                    document.getElementById('register-form').classList.add('hidden');
+                    document.getElementById('login-form').classList.remove('hidden');
+                });
+            }
+            
+            if (loginForm) {
+                loginForm.addEventListener('submit', (e) => {
+                    console.log('🔑 Login form submitted');
+                    handleLogin(e);
+                });
+            }
+            
+            if (registerForm) {
+                registerForm.addEventListener('submit', (e) => {
+                    console.log('📝 Register form submitted');
+                    handleRegister(e);
+                });
+            }
+            
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => {
+                    console.log('🚪 Logout button clicked');
+                    handleLogout();
+                });
+            }
+            
+            // Debug test button
+            const debugTestBtn = document.getElementById('debug-test');
+            if (debugTestBtn) {
+                debugTestBtn.addEventListener('click', () => {
+                    console.log('🔍 Debug test button clicked!');
+                    showToast('Debug test - JavaScript is working!', false);
+                });
+            }
+            
+            console.log('✅ Event listeners set up complete');
+            
             if (authToken) {
+                console.log('🔐 Auth token found, checking auth...');
                 checkAuth();
             } else {
+                console.log('🔓 No auth token, showing auth modal...');
                 showAuthModal();
             }
         });
@@ -256,22 +386,12 @@
             document.getElementById('auth-modal').classList.add('hidden');
             document.getElementById('user-info').classList.remove('hidden');
             document.getElementById('username-display').textContent = currentUser.username;
+            
+            // Update user profile
+            updateUserProfile();
         }
 
-        // Form event listeners
-        document.getElementById('show-register').addEventListener('click', () => {
-            document.getElementById('login-form').classList.add('hidden');
-            document.getElementById('register-form').classList.remove('hidden');
-        });
-
-        document.getElementById('show-login').addEventListener('click', () => {
-            document.getElementById('register-form').classList.add('hidden');
-            document.getElementById('login-form').classList.remove('hidden');
-        });
-
-        document.getElementById('login-form-element').addEventListener('submit', handleLogin);
-        document.getElementById('register-form-element').addEventListener('submit', handleRegister);
-        document.getElementById('logout-btn').addEventListener('click', handleLogout);
+        // Form event listeners will be set up after DOM is loaded
 
         async function handleLogin(e) {
             e.preventDefault();
@@ -303,30 +423,63 @@
         }
 
         async function handleRegister(e) {
+            console.log('📝 handleRegister called with event:', e);
             e.preventDefault();
+            console.log('✅ Event prevented default');
+            
+            // Clear previous errors
+            clearFormErrors();
+            
             const username = document.getElementById('register-username').value;
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
-
+            
+            console.log('📋 Form data:', { username, email, password: password ? '***' : 'empty' });
+            
+            if (!username || !email || !password) {
+                console.error('❌ Missing form data');
+                showToast('Please fill in all fields', true);
+                return;
+            }
+            
+            console.log('🌐 Making API call to:', `${API_BASE}/auth/register`);
+            console.log('📤 Request payload:', { username, email, password: '***' });
+            
             try {
                 const response = await fetch(`${API_BASE}/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, email, password })
                 });
-
+                
+                console.log('📥 Response received:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    ok: response.ok
+                });
+                
                 const data = await response.json();
+                console.log('📄 Response data:', data);
                 
                 if (response.ok) {
+                    console.log('✅ Registration successful');
                     authToken = data.token;
                     currentUser = data.user;
                     localStorage.setItem('authToken', authToken);
                     hideAuthModal();
                     showToast('Account created successfully!', false);
                 } else {
-                    showToast(data.message, true);
+                    console.error('❌ Registration failed:', data.message);
+                    
+                    // Handle validation errors
+                    if (data.errors && Array.isArray(data.errors)) {
+                        displayFormErrors(data.errors);
+                    } else {
+                        showToast(data.message || 'Registration failed', true);
+                    }
                 }
             } catch (error) {
+                console.error('💥 Registration error:', error);
                 showToast('Registration failed. Please try again.', true);
             }
         }
@@ -341,6 +494,26 @@
             showToast('Logged out successfully', false);
         }
 
+        // Helper functions for video controls
+        function seekToTime(time) {
+            if (player && typeof player.seekTo === 'function') {
+                player.seekTo(time);
+                showToast(`Seeking to ${formatTime(time)}`, false);
+            }
+        }
+        
+        function playClip(startTime, endTime) {
+            if (player && typeof player.seekTo === 'function') {
+                player.seekTo(startTime);
+                player.playVideo();
+                
+                // Set up loop for this clip
+                stopLoop();
+                startLoop(startTime, endTime, -1);
+                showToast(`Playing clip from ${formatTime(startTime)} to ${formatTime(endTime)}`, false);
+            }
+        }
+        
         // Load user's notes
         async function loadUserNotes() {
             if (!authToken) return;
@@ -354,11 +527,128 @@
                 
                 if (response.ok) {
                     const data = await response.json();
-                    notes = data.notes;
+                    allNotes = data.notes;
+                    notes = allNotes.filter(note => note.videoId === currentVideoId);
                     renderNotes();
+                    updateUserProfile();
+                    renderAllNotesSidebar();
                 }
             } catch (error) {
                 console.error('Failed to load notes:', error);
+            }
+        }
+        
+        // Update user profile display
+        function updateUserProfile() {
+            if (!currentUser) return;
+            
+            // Update profile info
+            document.getElementById('profile-username').textContent = currentUser.username;
+            document.getElementById('profile-email').textContent = currentUser.email;
+            document.getElementById('user-avatar').textContent = currentUser.username.charAt(0).toUpperCase();
+            
+            // Update stats
+            const totalNotes = allNotes.length;
+            const totalVideos = [...new Set(allNotes.map(note => note.videoId))].length;
+            
+            document.getElementById('total-notes').textContent = totalNotes;
+            document.getElementById('total-videos').textContent = totalVideos;
+        }
+        
+        // Render all notes in sidebar
+        function renderAllNotesSidebar() {
+            const sidebar = document.getElementById('all-notes-sidebar');
+            if (!sidebar) return;
+            
+            if (allNotes.length === 0) {
+                sidebar.innerHTML = '<p class="text-gray-500 text-center py-8">No notes yet. Start by loading a video!</p>';
+                return;
+            }
+            
+            // Group notes by video
+            const notesByVideo = {};
+            allNotes.forEach(note => {
+                if (!notesByVideo[note.videoId]) {
+                    notesByVideo[note.videoId] = [];
+                }
+                notesByVideo[note.videoId].push(note);
+            });
+            
+            let sidebarHTML = '';
+            Object.entries(notesByVideo).forEach(([videoId, videoNotes]) => {
+                const videoTitle = videoNotes[0].videoTitle || `Video ${videoId}`;
+                const noteCount = videoNotes.length;
+                
+                sidebarHTML += `
+                    <div class="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-semibold text-gray-800 text-sm truncate" title="${videoTitle}">${videoTitle}</h4>
+                            <span class="text-xs text-gray-500 bg-white px-2 py-1 rounded-full">${noteCount} note${noteCount > 1 ? 's' : ''}</span>
+                        </div>
+                        <div class="space-y-2">
+                            ${videoNotes.slice(0, 3).map(note => `
+                                <div class="text-xs text-gray-600 bg-white p-2 rounded border">
+                                    <div class="font-medium">${formatTime(note.startTime)} → ${formatTime(note.endTime)}</div>
+                                    <div class="truncate" title="${note.text}">${note.text}</div>
+                                </div>
+                            `).join('')}
+                            ${videoNotes.length > 3 ? `<div class="text-xs text-gray-500 text-center">+${videoNotes.length - 3} more</div>` : ''}
+                        </div>
+                        <button onclick="loadVideoById('${videoId}')" class="w-full mt-2 text-xs bg-blue-100 text-blue-700 py-1 px-2 rounded hover:bg-blue-200 transition">
+                            Load Video
+                        </button>
+                    </div>
+                `;
+            });
+            
+            sidebar.innerHTML = sidebarHTML;
+        }
+        
+        // Load video by ID (for sidebar buttons)
+        function loadVideoById(videoId) {
+            // Find a note with this video ID to get the title
+            const videoNote = allNotes.find(note => note.videoId === videoId);
+            if (videoNote) {
+                currentVideoTitle = videoNote.videoTitle;
+                // Update the URL input to show the video ID
+                document.getElementById('youtube-url').value = `https://www.youtube.com/watch?v=${videoId}`;
+                // Load the video
+                handleLoadVideo();
+            }
+        }
+        
+        // Delete note function
+        async function deleteNote(noteId) {
+            if (!authToken) {
+                showToast("Please log in to delete notes.", true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/notes/${noteId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    // Remove from both arrays
+                    notes = notes.filter(note => note._id !== noteId);
+                    allNotes = allNotes.filter(note => note._id !== noteId);
+                    
+                    // Update displays
+                    renderCurrentVideoNotes();
+                    renderAllNotesSidebar();
+                    updateUserProfile();
+                    
+                    showToast('Note deleted successfully!', false);
+                } else {
+                    showToast('Failed to delete note.', true);
+                }
+            } catch (error) {
+                console.error('Error deleting note:', error);
+                showToast('Failed to delete note.', true);
             }
         }
 
@@ -380,19 +670,43 @@
         const endTimeDisplay = document.getElementById('end-time-display');
         const addNoteBtn = document.getElementById('add-note');
         const noteText = document.getElementById('note-text');
-        const notesList = document.getElementById('notes-list');
-        const notesPlaceholder = document.getElementById('notes-placeholder');
+
         const playerPlaceholder = document.getElementById('player-placeholder');
         const toast = document.getElementById('toast');
-        const loadNotesBtn = document.getElementById('load-notes');
-
         // Event Listeners
         loadVideoBtn.addEventListener('click', handleLoadVideo);
         urlInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleLoadVideo());
         setStartTimeBtn.addEventListener('click', () => setTime('start'));
         setEndTimeBtn.addEventListener('click', () => setTime('end'));
         addNoteBtn.addEventListener('click', handleAddNote);
-        loadNotesBtn.addEventListener('click', loadUserNotes);
+        
+        // Add event listener for refresh all notes button
+        const refreshAllNotesBtn = document.getElementById('refresh-all-notes');
+        if (refreshAllNotesBtn) {
+            refreshAllNotesBtn.addEventListener('click', loadUserNotes);
+        }
+        
+        // Sidebar functionality
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebarToggleCollapsed = document.getElementById('sidebar-toggle-collapsed');
+        const sidebarExpand = document.getElementById('sidebar-expand');
+        
+        // Toggle sidebar
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.add('sidebar-collapsed');
+                sidebarToggleCollapsed.classList.remove('hidden');
+            });
+        }
+        
+        // Expand sidebar
+        if (sidebarExpand) {
+            sidebarExpand.addEventListener('click', () => {
+                sidebar.classList.remove('sidebar-collapsed');
+                sidebarToggleCollapsed.classList.add('hidden');
+            });
+        }
 
         // Core Functions
         function getYouTubeVideoId(url) {
@@ -457,10 +771,50 @@
                     const data = await response.json();
                     notes = data.notes;
                     renderNotes();
+                    renderCurrentVideoNotes();
                 }
             } catch (error) {
                 console.error('Failed to load video notes:', error);
             }
+        }
+        
+        // Render current video notes
+        function renderCurrentVideoNotes() {
+            const container = document.getElementById('current-video-notes');
+            if (!container) return;
+            
+            if (!currentVideoId) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">No video loaded</p>';
+                return;
+            }
+            
+            if (notes.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">No notes for this video yet</p>';
+                return;
+            }
+            
+            let notesHTML = '';
+            notes.forEach((note, index) => {
+                notesHTML += `
+                    <div class="bg-gray-50 p-3 rounded-lg border">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="font-mono text-sm text-blue-600">${formatTime(note.startTime)} → ${formatTime(note.endTime)}</span>
+                            <button onclick="deleteNote('${note._id}')" class="text-red-500 hover:text-red-700 text-sm">×</button>
+                        </div>
+                        <p class="text-gray-700 text-sm">${escapeHTML(note.text)}</p>
+                        <div class="flex space-x-2 mt-2">
+                            <button onclick="seekToTime(${note.startTime})" class="text-xs bg-blue-100 text-blue-700 py-1 px-2 rounded hover:bg-blue-200 transition">
+                                Go to Start
+                            </button>
+                            <button onclick="playClip(${note.startTime}, ${note.endTime})" class="text-xs bg-green-100 text-green-700 py-1 px-2 rounded hover:bg-green-200 transition">
+                                Play Clip
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = notesHTML;
         }
 
         function setTime(type) {
@@ -513,8 +867,12 @@
                 if (response.ok) {
                     const data = await response.json();
                     notes.push(data.note);
+                    allNotes.push(data.note);
                     notes.sort((a, b) => a.startTime - b.startTime);
                     renderNotes();
+                    renderCurrentVideoNotes();
+                    renderAllNotesSidebar();
+                    updateUserProfile();
                     resetNoteTaker();
                     showToast('Note saved successfully!', false);
                 } else {
@@ -527,44 +885,9 @@
         }
 
         function renderNotes() {
-            notesList.innerHTML = ''; 
-
-            if (notes.length === 0) {
-                notesList.appendChild(notesPlaceholder);
-                return;
-            }
-
-            notes.forEach((note, index) => {
-                const li = document.createElement('li');
-                li.className = 'bg-white p-4 rounded-lg shadow-sm border border-gray-200';
-                
-                const isLooping = (index === loopingNoteIndex);
-                const replayButtonText = isLooping ? 'Stop Loop' : 'Replay';
-                const replayButtonClass = isLooping ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600';
-
-                const noteContent = `
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div class="flex-grow">
-                            <span class="font-bold text-blue-600">${formatTime(note.startTime)} -> ${formatTime(note.endTime)}</span>
-                            <p class="text-gray-700 mt-1">${escapeHTML(note.text)}</p>
-                        </div>
-                        <div class="flex items-center gap-2 flex-shrink-0">
-                            <button data-time="${note.startTime}" class="seek-btn bg-gray-200 text-gray-800 font-medium px-3 py-2 rounded-md hover:bg-gray-300 transition text-sm">Go to</button>
-                            <button data-index="${index}" class="replay-btn ${replayButtonClass} text-white font-medium px-3 py-2 rounded-md transition text-sm">${replayButtonText}</button>
-                            <button data-id="${note._id}" class="delete-btn text-gray-400 hover:text-red-500 transition p-2 rounded-full">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
-                            </button>
-                        </div>
-                    </div>
-                `;
-                li.innerHTML = noteContent;
-                notesList.appendChild(li);
-            });
-
-            // Add event listeners to the new buttons
-            document.querySelectorAll('.seek-btn').forEach(btn => btn.addEventListener('click', (e) => player.seekTo(e.target.dataset.time)));
-            document.querySelectorAll('.replay-btn').forEach(btn => btn.addEventListener('click', handleReplayToggle));
-            document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', handleDeleteNote));
+            // This function is now deprecated since we use the new sidebar system
+            // But we'll keep it for backward compatibility and just update the current video notes
+            renderCurrentVideoNotes();
         }
         
         function handleReplayToggle(e) {
@@ -624,8 +947,15 @@
                     if (notes.find(n => n._id === noteId) === loopingNoteIndex) {
                         stopLoop();
                     }
+                    // Remove from both arrays
                     notes = notes.filter(n => n._id !== noteId);
-                    renderNotes();
+                    allNotes = allNotes.filter(n => n._id !== noteId);
+                    
+                    // Update displays
+                    renderCurrentVideoNotes();
+                    renderAllNotesSidebar();
+                    updateUserProfile();
+                    
                     showToast('Note deleted successfully!', false);
                 } else {
                     showToast('Failed to delete note.', true);
@@ -651,14 +981,25 @@
         }
 
         function showToast(message, isError = false) {
+            console.log('🔔 showToast called:', { message, isError });
+            console.log('🔍 Toast element found:', !!toast);
+            
+            if (!toast) {
+                console.error('❌ Toast element not found!');
+                return;
+            }
+            
             toast.textContent = message;
             toast.className = `fixed bottom-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 ${isError ? 'bg-red-600' : 'bg-gray-900'}`;
             toast.classList.remove('opacity-0', 'translate-y-2');
             toast.classList.add('opacity-100', 'translate-y-0');
+            
+            console.log('✅ Toast displayed:', message);
 
             setTimeout(() => {
                 toast.classList.remove('opacity-100', 'translate-y-0');
                 toast.classList.add('opacity-0', 'translate-y-2');
+                console.log('🔄 Toast hidden after timeout');
             }, 3000);
         }
 
@@ -666,6 +1007,31 @@
             const p = document.createElement('p');
             p.appendChild(document.createTextNode(str));
             return p.innerHTML;
+        }
+        
+        // Form error handling functions
+        function clearFormErrors() {
+            const errorElements = ['username-error', 'email-error', 'password-error'];
+            errorElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.classList.add('hidden');
+                    element.textContent = '';
+                }
+            });
+        }
+        
+        function displayFormErrors(errors) {
+            console.log('🚨 Displaying form errors:', errors);
+            
+            errors.forEach(error => {
+                const errorElement = document.getElementById(`${error.field}-error`);
+                if (errorElement) {
+                    errorElement.textContent = error.message;
+                    errorElement.classList.remove('hidden');
+                    console.log(`📝 Displayed error for ${error.field}:`, error.message);
+                }
+            });
         }
 
         // Resizable Gutter Logic

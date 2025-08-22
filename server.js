@@ -14,10 +14,34 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`📥 ${req.method} ${req.path} - ${new Date().toISOString()}`);
+  if (req.body && Object.keys(req.body).length > 0) {
+    console.log('📋 Request body:', req.body);
+  }
+  next();
+});
+
 // MongoDB Connection
+console.log('🗄️ Connecting to MongoDB...');
+console.log('🔗 Connection string:', process.env.MONGODB_URI || 'mongodb://localhost:27017/youtube_notes');
+
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/youtube_notes', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+});
+
+mongoose.connection.on('connected', () => {
+  console.log('✅ MongoDB connected successfully');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('❌ MongoDB connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('🔌 MongoDB disconnected');
 });
 
 // User Schema
@@ -68,28 +92,64 @@ const authenticateToken = async (req, res, next) => {
 
 // User Registration
 app.post('/api/auth/register', [
-  body('username').isLength({ min: 3 }).trim().escape(),
-  body('email').isEmail().normalizeEmail(),
-  body('password').isLength({ min: 6 })
+  body('username')
+    .isLength({ min: 3 })
+    .withMessage('Username must be at least 3 characters long')
+    .trim()
+    .escape(),
+  body('email')
+    .isEmail()
+    .withMessage('Please enter a valid email address')
+    .normalizeEmail(),
+  body('password')
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters long')
 ], async (req, res) => {
+  console.log('🚀 POST /api/auth/register - Registration request received');
+  console.log('📋 Request body:', { 
+    username: req.body.username, 
+    email: req.body.email, 
+    password: req.body.password ? '***' : 'missing' 
+  });
+  
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      console.log('❌ Validation errors:', errors.array());
+      
+      // Create user-friendly error messages
+      const errorMessages = errors.array().map(error => ({
+        field: error.path,
+        message: error.msg,
+        value: error.value
+      }));
+      
+      console.log('📝 Formatted error messages:', errorMessages);
+      return res.status(400).json({ 
+        message: 'Validation failed',
+        errors: errorMessages 
+      });
     }
+    console.log('✅ Validation passed');
 
     const { username, email, password } = req.body;
 
     // Check if user already exists
+    console.log('🔍 Checking if user already exists...');
     const existingUser = await User.findOne({ $or: [{ email }, { username }] });
     if (existingUser) {
+      console.log('❌ User already exists:', { email, username });
       return res.status(400).json({ message: 'User already exists' });
     }
+    console.log('✅ No existing user found');
 
     // Hash password
+    console.log('🔐 Hashing password...');
     const hashedPassword = await bcrypt.hash(password, 12);
+    console.log('✅ Password hashed successfully');
 
     // Create user
+    console.log('👤 Creating new user...');
     const user = new User({
       username,
       email,
@@ -97,14 +157,18 @@ app.post('/api/auth/register', [
     });
 
     await user.save();
+    console.log('✅ User saved to database:', { userId: user._id, username: user.username });
 
     // Generate token
+    console.log('🎫 Generating JWT token...');
     const token = jwt.sign(
       { userId: user._id },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '7d' }
     );
+    console.log('✅ JWT token generated');
 
+    console.log('🎉 Registration successful, sending response');
     res.status(201).json({
       message: 'User created successfully',
       token,
@@ -115,6 +179,7 @@ app.post('/api/auth/register', [
       }
     });
   } catch (error) {
+    console.error('💥 Registration error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
@@ -278,8 +343,21 @@ app.delete('/api/notes/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// YouTube Data API helper function
+async function getVideoTitle(videoId) {
+  try {
+    // For now, we'll use a simple approach
+    // In production, you'd want to use YouTube Data API v3
+    return `Video ${videoId}`;
+  } catch (error) {
+    console.error('Error getting video title:', error);
+    return `Video ${videoId}`;
+  }
+}
+
 // Serve the main app
 app.get('/', (req, res) => {
+  console.log('🏠 Serving main app (index.html)');
   res.sendFile(__dirname + '/public/index.html');
 });
 
