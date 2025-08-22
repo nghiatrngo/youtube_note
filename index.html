@@ -1284,6 +1284,11 @@
                         renderCurrentVideoNotes();
                         renderAllNotesSidebar();
                         showToast('Note updated successfully!', 'success');
+                        
+                        // Reload the page to show all updates
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
                     } else {
                         const errorData = await response.json().catch(() => ({}));
                         console.error('Server error:', errorData);
@@ -1319,6 +1324,11 @@
                     renderCurrentVideoNotes();
                     renderAllNotesSidebar();
                     showToast('Note updated successfully!', 'success');
+                    
+                    // Reload the page to show all updates
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
                 }
             } catch (error) {
                 console.error('Error updating note:', error);
