@@ -25,7 +25,7 @@ npm install
 if [ ! -f .env ]; then
     echo "🔧 Creating .env file..."
     cp env.example .env
-    echo "⚠️  Please edit .env file with your MongoDB connection string and JWT secret"
+    echo "⚠️  Please edit .env file with your Supabase credentials and JWT secret"
 else
     echo "✅ .env file already exists"
 fi
@@ -34,8 +34,8 @@ echo ""
 echo "🎉 Setup complete!"
 echo ""
 echo "Next steps:"
-echo "1. Edit .env file with your MongoDB connection string"
-echo "2. Start MongoDB (local or Atlas)"
+echo "1. Edit .env file with your Supabase credentials"
+echo "2. Create users and notes tables in Supabase dashboard"
 echo "3. Run: npm run dev"
 echo "4. Open: http://localhost:3000"
 echo ""
