@@ -546,7 +546,7 @@
                                     <button id="collapse-all-notes" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition">
                                         📕 Collapse All
                                     </button>
-                                    <select id="sort-notes" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <select id="sort-notes" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-purple-100 text-purple-800 border-purple-300">
                                         <option value="newest">Newest First</option>
                                         <option value="oldest">Oldest First</option>
                                         <option value="alphabetical">Alphabetical</option>
@@ -3180,6 +3180,9 @@
                                 </div>
                             </div>
                                                             <div class="flex items-center space-x-2">
+                                    <button onclick="goToNoteInVideo('${noteId}')" class="text-indigo-600 hover:text-indigo-800 text-sm px-2 py-1 rounded border border-indigo-200 hover:bg-indigo-50">
+                                        🎬 Go To
+                                    </button>
                                     <button onclick="toggleNoteExpansion('${noteId}')" class="text-blue-600 hover:text-blue-800 text-sm px-2 py-1 rounded border border-blue-200 hover:bg-blue-50">
                                         📖 Expand
                                     </button>
@@ -3412,6 +3415,116 @@
                 setTimeout(() => {
                     renderNotePreview();
                 }, 500);
+            }
+        }
+
+        // Go to note in video view with loop
+        function goToNoteInVideo(noteId) {
+            const note = NoteIdManager.findNoteInArrays(noteId, allNotes);
+            if (!note) {
+                showToast('Note not found', 'error');
+                return;
+            }
+
+            // Switch to video notes view
+            switchToVideoNoteView();
+            
+            // Load the video if not already loaded
+            if (currentVideoId !== note.videoId) {
+                currentVideoId = note.videoId;
+                currentVideoTitle = note.videoTitle || note.videoId;
+                
+                // Load video notes
+                loadVideoNotes(note.videoId);
+                
+                // Load video in player
+                if (typeof YT !== 'undefined' && YT.Player) {
+                    if (player) {
+                        player.loadVideoById(note.videoId);
+                    } else {
+                        // Create new player if it doesn't exist
+                        player = new YT.Player('player', {
+                            videoId: note.videoId,
+                            width: '100%',
+                            height: '100%',
+                            playerVars: { 
+                                'playsinline': 1, 
+                                'rel': 0,
+                                'modestbranding': 1,
+                                'showinfo': 0
+                            },
+                            events: { 'onPlayerReady': onPlayerReady }
+                        });
+                    }
+                }
+                
+                // Hide placeholder and show controls
+                if (playerPlaceholder) {
+                    playerPlaceholder.style.display = 'none';
+                }
+                if (videoControlsToolbar) {
+                    videoControlsToolbar.classList.remove('hidden');
+                }
+            }
+            
+            // Wait a bit for video to load, then seek to note time and start loop
+            setTimeout(() => {
+                if (player && typeof player.seekTo === 'function') {
+                    // Seek to the note start time
+                    player.seekTo(note.startTime, true);
+                    
+                    // Start playing the note clip loop
+                    startNoteClipLoop(noteId);
+                    
+                    showToast(`Playing note clip: ${note.text.substring(0, 50)}...`, 'success');
+                }
+            }, 2000);
+        }
+
+        // Start note clip loop
+        function startNoteClipLoop(noteId) {
+            const note = NoteIdManager.findNoteInArrays(noteId, allNotes);
+            if (!note) return;
+            
+            // Stop any existing loop
+            if (loopInterval) {
+                clearInterval(loopInterval);
+            }
+            
+            // Set loop interval to check and restart clip
+            loopInterval = setInterval(() => {
+                if (player && typeof player.getCurrentTime === 'function') {
+                    const currentTime = player.getCurrentTime();
+                    
+                    // If we've reached the end time, seek back to start
+                    if (currentTime >= note.endTime) {
+                        player.seekTo(note.startTime, true);
+                    }
+                    
+                    // Ensure video is playing
+                    if (player.getPlayerState && player.getPlayerState() !== 1) { // 1 = playing
+                        player.playVideo();
+                    }
+                }
+            }, 1000); // Check every second
+            
+            // Store the looping note index
+            loopingNoteIndex = allNotes.findIndex(n => (n._id || n.id) === noteId);
+            
+            // Show loop status
+            if (loopingStatus) {
+                loopingStatus.textContent = `🔁 Looping: ${note.text.substring(0, 30)}...`;
+            }
+            if (stopLoopingBtn) {
+                stopLoopingBtn.classList.remove('hidden');
+            }
+            
+            // Also update toolbar if available
+            if (toolbarLoopingStatus) {
+                toolbarLoopingStatus.textContent = `🔁 Looping: ${note.text.substring(0, 30)}...`;
+            }
+            if (toolbarStopLooping) {
+                toolbarStopLooping.classList.remove('hidden');
             }
         }
 
