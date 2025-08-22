@@ -301,6 +301,31 @@
         #video-note-view-btn, #note-preview-view-btn {
             transition: all 0.2s ease;
         }
+        
+        /* Custom scrollbar for note preview */
+        #all-notes-preview::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        #all-notes-preview::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        
+        #all-notes-preview::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        
+        #all-notes-preview::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        /* Firefox scrollbar */
+        #all-notes-preview {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f1f5f9;
+        }
     </style>
 </head>
 <body class="bg-gray-100 h-screen">
@@ -550,9 +575,9 @@
                     </div>
                     
                     <!-- Note-Preview View -->
-                    <div id="note-preview-view" class="hidden">
-                        <div class="bg-white border border-gray-200 rounded-lg p-6">
-                            <div class="flex items-center justify-between mb-6">
+                    <div id="note-preview-view" class="hidden h-full flex flex-col">
+                        <div class="bg-white border border-gray-200 rounded-lg p-6 flex-1 flex flex-col min-h-0">
+                            <div class="flex items-center justify-between mb-6 flex-shrink-0">
                                 <h3 class="text-2xl font-bold text-gray-800">All Notes Preview</h3>
                                 <div class="flex items-center space-x-3">
                                     <button id="expand-all-notes" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
@@ -571,7 +596,7 @@
                             </div>
                             
                             <!-- Search Bar -->
-                            <div class="flex items-center space-x-3 mb-6">
+                            <div class="flex items-center space-x-3 mb-6 flex-shrink-0">
                                 <div class="flex-1">
                                     <input type="text" id="note-search-input" placeholder="Search notes..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                 </div>
@@ -582,7 +607,9 @@
                                     ❌ Clear
                                 </button>
                             </div>
-                            <div id="all-notes-preview" class="space-y-4">
+                            
+                            <!-- Scrollable Notes Container -->
+                            <div id="all-notes-preview" class="space-y-4 flex-1 overflow-y-auto min-h-0 pr-2">
                                 <!-- Notes will be populated here -->
                             </div>
                         </div>
