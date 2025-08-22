@@ -376,30 +376,31 @@ app.put('/api/notes/:id', authenticateToken, async (req, res) => {
             })
             .eq('id', id)
             .eq('user_id', userId)
-            .select('*')
-            .single();
+            .select('*');
 
         if (error) {
             console.error('❌ Supabase update error:', error);
             throw error;
         }
 
-        if (!note) {
+        if (!note || note.length === 0) {
             console.log('❌ Note not found for update');
             return res.status(404).json({ message: 'Note not found' });
         }
 
-        console.log('✅ Note updated successfully in Supabase:', note);
+        // Get the first (and should be only) updated note
+        const updatedNote = Array.isArray(note) ? note[0] : note;
+        console.log('✅ Note updated successfully in Supabase:', updatedNote);
 
         const formattedNote = {
-            id: note.id,
-            videoId: note.video_id,
-            videoTitle: note.video_title,
-            startTime: note.start_time,
-            endTime: note.end_time,
-            text: note.text,
-            userId: note.user_id,
-            createdAt: note.created_at
+            id: updatedNote.id,
+            videoId: updatedNote.video_id,
+            videoTitle: updatedNote.video_title,
+            startTime: updatedNote.start_time,
+            endTime: updatedNote.end_time,
+            text: updatedNote.text,
+            userId: updatedNote.user_id,
+            createdAt: updatedNote.created_at
         };
 
         res.json({ message: 'Note updated successfully', note: formattedNote });
