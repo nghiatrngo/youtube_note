@@ -132,6 +132,18 @@
             --accent-hover: #7c3aed;
         }
         
+        /* Dark Navy Theme */
+        [data-theme="dark-navy"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-sidebar: #334155;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --border-color: #475569;
+            --accent-color: #0ea5e9;
+            --accent-hover: #0284c7;
+        }
+        
         /* Apply theme variables to entire page */
         body {
             background-color: var(--bg-primary) !important;
@@ -369,6 +381,9 @@
                             </button>
                             <button class="theme-option w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition" data-theme="purple">
                                 🟣 Purple
+                            </button>
+                            <button class="theme-option w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition" data-theme="dark-navy">
+                                🌊 Dark Navy
                             </button>
                         </div>
                     </div>
@@ -1038,7 +1053,8 @@
                 'dark': 'Dark',
                 'blue': 'Blue',
                 'green': 'Green',
-                'purple': 'Purple'
+                'purple': 'Purple',
+                'dark-navy': 'Dark Navy'
             };
             showToast(`Theme changed to ${themeNames[theme]}`, 'success');
         }
