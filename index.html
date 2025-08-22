@@ -1813,13 +1813,24 @@
                     });
 
                     if (response.ok) {
+                        // Remove note from both arrays
+                        const initialNotesCount = notes.length;
+                        const initialAllNotesCount = allNotes.length;
+                        
                         notes = notes.filter(note => note.id !== noteId);
                         allNotes = allNotes.filter(note => note.id !== noteId);
+                        
+                        console.log(`Note deletion: Removed note ${noteId}`);
+                        console.log(`Notes: ${initialNotesCount} → ${notes.length}`);
+                        console.log(`All Notes: ${initialAllNotesCount} → ${allNotes.length}`);
                         
                         // Update displays
                         renderCurrentVideoNotes();
                         renderAllNotesSidebar();
                         updateUserProfile();
+                        
+                        // Save current page state
+                        savePageState();
                         
                         showToast('Note deleted successfully!', 'success');
                     } else {
@@ -1827,8 +1838,15 @@
                     }
                 } else {
                     // localStorage fallback
+                const initialNotesCount = notes.length;
+                const initialAllNotesCount = allNotes.length;
+                
                 notes = notes.filter(note => note.id !== noteId);
                 allNotes = allNotes.filter(note => note.id !== noteId);
+                
+                console.log(`Note deletion (localStorage): Removed note ${noteId}`);
+                console.log(`Notes: ${initialNotesCount} → ${notes.length}`);
+                console.log(`All Notes: ${initialAllNotesCount} → ${allNotes.length}`);
                 
                 // Update localStorage
                 const userNotes = JSON.parse(localStorage.getItem(`notes_${currentUser.id}`) || '[]');
@@ -1839,6 +1857,9 @@
                 renderCurrentVideoNotes();
                 renderAllNotesSidebar();
                 updateUserProfile();
+                
+                // Save current page state
+                savePageState();
                 
                 showToast('Note deleted successfully!', 'success');
                 }
