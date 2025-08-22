@@ -209,10 +209,7 @@
                         <!-- Divider -->
                         <div class="w-px h-8 bg-gray-300"></div>
                         
-                        <!-- Note Actions -->
-                        <button id="toolbar-add-note" class="bg-green-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-600 transition">
-                            📝 Add Note
-                        </button>
+
                         
                         <!-- Stop Looping Button (hidden by default) -->
                         <button id="toolbar-stop-looping" class="hidden bg-red-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-600 transition">
@@ -223,29 +220,30 @@
 
                 <!-- Video and Notes Section -->
                 <div class="grid grid-cols-1 xl:grid-cols-4 gap-4 lg:gap-6">
-                    <!-- Video Player and Note Taking -->
+                    <!-- Video Player -->
                     <div class="xl:col-span-3">
                         <!-- YouTube Player -->
-                        <div id="player-container" class="bg-black rounded-lg overflow-hidden shadow-inner mb-6" style="aspect-ratio: 16/9;">
+                        <div id="player-container" class="bg-black rounded-lg overflow-hidden shadow-inner" style="aspect-ratio: 16/9;">
                              <div id="player-placeholder" class="w-full h-full flex items-center justify-center text-gray-400">
                                 <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 <span class="ml-4">Video will appear here</span>
                             </div>
                             <div id="player" class="w-full h-full"></div>
                         </div>
+                    </div>
 
-                        <!-- Note Taking Area -->
-                        <div id="note-taker" class="bg-gray-50 p-4 rounded-lg">
-                            <h3 class="text-xl font-semibold mb-3">Create a Clip</h3>
+                    <!-- Right Sidebar with Note Input and Current Notes -->
+                    <div class="xl:col-span-1 space-y-4">
+                        <!-- Note Input Area -->
+                        <div class="bg-white border border-gray-200 rounded-lg p-4">
+                            <h3 class="text-lg font-semibold mb-3 text-gray-800">Create a Clip</h3>
                             <textarea id="note-text" class="w-full p-3 border border-gray-300 rounded-lg h-24 focus:ring-2 focus:ring-blue-500" placeholder="Write your note for this clip..."></textarea>
                             <button id="add-note" class="mt-3 w-full bg-green-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-green-600 transition shadow-md">
                                 Add Note & Clip
                             </button>
                         </div>
-                    </div>
 
-                    <!-- Current Video Notes -->
-                    <div class="xl:col-span-1">
+                        <!-- Current Video Notes -->
                         <div class="bg-white border border-gray-200 rounded-lg p-4 h-fit">
                             <h3 class="text-lg font-semibold mb-3 text-gray-800">Current Video Notes</h3>
                             <div id="current-video-notes" class="space-y-3 max-h-96 overflow-y-auto">
@@ -284,11 +282,10 @@
         // DOM Elements - will be initialized after DOM loads
         let authModal, loginForm, registerForm, showRegisterBtn, showLoginBtn, logoutBtn;
         let userInfo, usernameDisplay, urlInput, loadVideoBtn, noteTaker;
-        let setStartTimeBtn, setEndTimeBtn, startTimeDisplay, endTimeDisplay;
         let addNoteBtn, noteText, stopLoopingBtn, loopingStatus, playerPlaceholder, toast;
         let sidebarToggle, sidebar, mainContent;
         let urlInputSection, videoToolbar, toolbarLoadVideo, toolbarSetStart, toolbarSetEnd;
-        let toolbarStartTime, toolbarEndTime, toolbarAddNote, toolbarStopLooping, toolbarLoopingStatus;
+        let toolbarStartTime, toolbarEndTime, toolbarStopLooping, toolbarLoopingStatus;
 
         // Check authentication on load
         document.addEventListener('DOMContentLoaded', () => {
@@ -306,10 +303,6 @@
             urlInput = document.getElementById('youtube-url');
             loadVideoBtn = document.getElementById('load-video');
             noteTaker = document.getElementById('note-taker');
-            setStartTimeBtn = document.getElementById('set-start-time');
-            setEndTimeBtn = document.getElementById('set-end-time');
-            startTimeDisplay = document.getElementById('start-time-display');
-            endTimeDisplay = document.getElementById('end-time-display');
             addNoteBtn = document.getElementById('add-note');
             noteText = document.getElementById('note-text');
             stopLoopingBtn = document.getElementById('stop-looping');
@@ -328,7 +321,6 @@
             toolbarSetEnd = document.getElementById('toolbar-set-end');
             toolbarStartTime = document.getElementById('toolbar-start-time');
             toolbarEndTime = document.getElementById('toolbar-end-time');
-            toolbarAddNote = document.getElementById('toolbar-add-note');
             toolbarStopLooping = document.getElementById('toolbar-stop-looping');
             toolbarLoopingStatus = document.getElementById('toolbar-looping-status');
             
@@ -364,8 +356,10 @@
             if (toolbarLoadVideo) toolbarLoadVideo.addEventListener('click', showUrlInput);
             if (toolbarSetStart) toolbarSetStart.addEventListener('click', () => setTime('start'));
             if (toolbarSetEnd) toolbarSetEnd.addEventListener('click', () => setTime('end'));
-            if (toolbarAddNote) toolbarAddNote.addEventListener('click', handleAddNote);
             if (toolbarStopLooping) toolbarStopLooping.addEventListener('click', stopLoop);
+            
+            // Note taking event listeners
+            if (addNoteBtn) addNoteBtn.addEventListener('click', handleAddNote);
             
             // Initialize UI elements
             if (stopLoopingBtn) {
@@ -1113,11 +1107,11 @@
                 const currentTime = Math.floor(player.getCurrentTime());
                 if (type === 'start') {
                     tempStartTime = currentTime;
-                    if (startTimeDisplay) startTimeDisplay.textContent = formatTime(currentTime);
+
                     if (toolbarStartTime) toolbarStartTime.textContent = formatTime(currentTime);
                 } else {
                     tempEndTime = currentTime;
-                    if (endTimeDisplay) endTimeDisplay.textContent = formatTime(currentTime);
+
                     if (toolbarEndTime) toolbarEndTime.textContent = formatTime(currentTime);
                 }
             } else {
@@ -1130,8 +1124,7 @@
             noteText.value = '';
             tempStartTime = 0;
             tempEndTime = 0;
-            if (startTimeDisplay) startTimeDisplay.textContent = '00:00';
-            if (endTimeDisplay) endTimeDisplay.textContent = '00:00';
+
             if (toolbarStartTime) toolbarStartTime.textContent = '00:00';
             if (toolbarEndTime) toolbarEndTime.textContent = '00:00';
             
