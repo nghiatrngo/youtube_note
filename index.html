@@ -2688,6 +2688,7 @@
 
         // Debug function for edit issues
         window.debugEditIssue = function() {
+            alert('Debug function called! Check console for details.');
             console.log('🐛 Debug Edit Issue');
             console.log('📊 Current state:', {
                 currentVideoId,
@@ -2723,6 +2724,14 @@
 
         console.log('✅ Cloud version JavaScript loaded successfully');
         console.log(`🌐 Using ${USE_CLOUD ? 'Cloud API' : 'localStorage'} for data storage`);
+        
+        // Test if debug function is available
+        console.log('🔍 Debug function available:', typeof window.debugEditIssue);
+        if (typeof window.debugEditIssue === 'function') {
+            console.log('✅ Debug function is properly defined');
+        } else {
+            console.error('❌ Debug function is NOT defined');
+        }
     </script>
 </body>
 </html>
