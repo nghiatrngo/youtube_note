@@ -330,18 +330,36 @@ app.get('/api/notes/video/:videoId', authenticateToken, async (req, res) => {
 // Update Note
 app.put('/api/notes/:id', authenticateToken, async (req, res) => {
   try {
-    const note = await Note.findOneAndUpdate(
+    console.log('🔍 Update request for note ID:', req.params.id);
+    console.log('📝 Update data:', req.body);
+    console.log('👤 User ID:', req.user._id);
+    
+    // Try to find note by MongoDB _id first, then by regular id
+    let note = await Note.findOneAndUpdate(
       { _id: req.params.id, userId: req.user._id },
       req.body,
       { new: true, runValidators: true }
     );
 
+    // If not found by _id, try by regular id
     if (!note) {
+      console.log('🔍 Note not found by _id, trying by regular id...');
+      note = await Note.findOneAndUpdate(
+        { id: req.params.id, userId: req.user._id },
+        req.body,
+        { new: true, runValidators: true }
+      );
+    }
+
+    if (!note) {
+      console.log('❌ Note not found by either _id or id');
       return res.status(404).json({ message: 'Note not found' });
     }
 
+    console.log('✅ Note updated successfully:', note);
     res.json({ message: 'Note updated successfully', note });
   } catch (error) {
+    console.error('❌ Error updating note:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
@@ -349,17 +367,33 @@ app.put('/api/notes/:id', authenticateToken, async (req, res) => {
 // Delete Note
 app.delete('/api/notes/:id', authenticateToken, async (req, res) => {
   try {
-    const note = await Note.findOneAndDelete({
+    console.log('🔍 Delete request for note ID:', req.params.id);
+    console.log('👤 User ID:', req.user._id);
+    
+    // Try to find note by MongoDB _id first, then by regular id
+    let note = await Note.findOneAndDelete({
       _id: req.params.id,
       userId: req.user._id
     });
 
+    // If not found by _id, try by regular id
     if (!note) {
+      console.log('🔍 Note not found by _id, trying by regular id...');
+      note = await Note.findOneAndDelete({
+        id: req.params.id,
+        userId: req.user._id
+      });
+    }
+
+    if (!note) {
+      console.log('❌ Note not found by either _id or id');
       return res.status(404).json({ message: 'Note not found' });
     }
 
+    console.log('✅ Note deleted successfully:', note);
     res.json({ message: 'Note deleted successfully' });
   } catch (error) {
+    console.error('❌ Error deleting note:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
