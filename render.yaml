@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: youtube-note-clipper-api
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm run cloud
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: youtube-notes-db
+          property: connectionString
+
+databases:
+  - name: youtube-notes-db
+    databaseName: youtube_notes
+    user: youtube_notes_user
+    plan: free
