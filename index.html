@@ -510,6 +510,9 @@
                                         <button onclick="debugNotesState()" class="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition" title="Debug: Check notes state">
                                             📊 State
                                         </button>
+                                        <button onclick="debugNoteEditing()" class="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 transition" title="Debug: Test note editing">
+                                            ✏️ Edit
+                                        </button>
                                     </div>
                                 </div>
                                 <div id="current-video-notes" class="space-y-3 max-h-[600px] overflow-y-auto">
@@ -1751,26 +1754,111 @@
                 });
             }
         }
+        
+        // Debug function to test note editing functionality
+        window.debugNoteEditing = function() {
+            console.log('🔍 Debug: Testing note editing functionality');
+            
+            if (!currentVideoId || notes.length === 0) {
+                console.log('❌ No current video or notes to test editing');
+                return;
+            }
+            
+            const firstNote = notes[0];
+            console.log('📝 Testing with first note:', {
+                id: firstNote.id,
+                _id: firstNote._id,
+                text: firstNote.text,
+                startTime: firstNote.startTime,
+                endTime: firstNote.endTime
+            });
+            
+            // Test entering edit mode
+            console.log('🔧 Entering edit mode...');
+            editNote(firstNote.id || firstNote._id);
+            
+            // Check if edit form is visible
+            setTimeout(() => {
+                const noteEdit = document.querySelector(`.note-edit[data-note-id="${firstNote.id || firstNote._id}"]`);
+                if (noteEdit && !noteEdit.classList.contains('hidden')) {
+                    console.log('✅ Edit form is visible');
+                    
+                    // Test form inputs
+                    const textarea = noteEdit.querySelector('textarea');
+                    const startTimeInput = noteEdit.querySelector('input[name="startTime"]');
+                    const endTimeInput = noteEdit.querySelector('input[name="endTime"]');
+                    
+                    console.log('📝 Form inputs found:', {
+                        textarea: !!textarea,
+                        startTimeInput: !!startTimeInput,
+                        endTimeInput: !!endTimeInput
+                    });
+                    
+                    if (textarea && startTimeInput && endTimeInput) {
+                        console.log('✅ All form inputs are present and functional');
+                    } else {
+                        console.error('❌ Some form inputs are missing');
+                    }
+                } else {
+                    console.error('❌ Edit form is not visible');
+                }
+            }, 100);
+        }
 
         // Note editing functions
         function editNote(noteId) {
+            console.log('🔍 editNote called with noteId:', noteId);
+            
+            if (!noteId) {
+                console.error('❌ No noteId provided to editNote');
+                showToast('Invalid note ID for editing', 'error');
+                return;
+            }
+            
             const noteText = document.querySelector(`.note-text[data-note-id="${noteId}"]`);
             const noteEdit = document.querySelector(`.note-edit[data-note-id="${noteId}"]`);
             
-            if (noteText && noteEdit) {
-                noteText.classList.add('hidden');
-                noteEdit.classList.remove('hidden');
-                
-                // Focus on the textarea
-                const textarea = noteEdit.querySelector('textarea');
-                if (textarea) {
-                    textarea.focus();
-                    textarea.select();
-                }
+            if (!noteText || !noteEdit) {
+                console.error('❌ Note elements not found for noteId:', noteId);
+                console.log('noteText found:', !!noteText);
+                console.log('noteEdit found:', !!noteEdit);
+                showToast('Note edit form not found', 'error');
+                return;
+            }
+            
+            // Verify the note exists in our data
+            const note = notes.find(n => n.id === noteId || n._id === noteId);
+            if (!note) {
+                console.error('❌ Note not found in data for noteId:', noteId);
+                showToast('Note data not found', 'error');
+                return;
+            }
+            
+            console.log('✅ Entering edit mode for note:', {
+                id: note.id,
+                _id: note._id,
+                text: note.text,
+                startTime: note.startTime,
+                endTime: note.endTime
+            });
+            
+            noteText.classList.add('hidden');
+            noteEdit.classList.remove('hidden');
+            
+            // Focus on the textarea
+            const textarea = noteEdit.querySelector('textarea');
+            if (textarea) {
+                textarea.focus();
+                textarea.select();
+                console.log('✅ Textarea focused and text selected');
+            } else {
+                console.error('❌ Textarea not found in edit form');
             }
         }
         
         function cancelNoteEdit(noteId) {
+            console.log('🔍 cancelNoteEdit called with noteId:', noteId);
+            
             const noteText = document.querySelector(`.note-text[data-note-id="${noteId}"]`);
             const noteEdit = document.querySelector(`.note-edit[data-note-id="${noteId}"]`);
             
@@ -1778,8 +1866,8 @@
                 noteText.classList.remove('hidden');
                 noteEdit.classList.add('hidden');
                 
-                // Reset the form inputs to original values
-                const note = notes.find(n => n.id === noteId);
+                // Reset the form inputs to original values with ID compatibility
+                const note = notes.find(n => n.id === noteId || n._id === noteId);
                 if (note) {
                     const startTimeInput = noteEdit.querySelector('input[name="startTime"]');
                     const endTimeInput = noteEdit.querySelector('input[name="endTime"]');
@@ -1788,17 +1876,35 @@
                     if (startTimeInput) startTimeInput.value = note.startTime;
                     if (endTimeInput) endTimeInput.value = note.endTime;
                     if (textarea) textarea.value = note.text;
+                    
+                    console.log('✅ Note edit cancelled and form reset');
+                } else {
+                    console.error('❌ Note not found for reset in cancelNoteEdit');
                 }
+            } else {
+                console.error('❌ Note edit elements not found for noteId:', noteId);
             }
         }
         
         async function saveNoteEdit(noteId) {
+            console.log('🔍 saveNoteEdit called with noteId:', noteId);
+            
             const noteEdit = document.querySelector(`.note-edit[data-note-id="${noteId}"]`);
+            if (!noteEdit) {
+                console.error('❌ Note edit form not found for noteId:', noteId);
+                showToast('Note edit form not found', 'error');
+                return;
+            }
+            
             const textarea = noteEdit?.querySelector('textarea');
             const startTimeInput = noteEdit?.querySelector('input[name="startTime"]');
             const endTimeInput = noteEdit?.querySelector('input[name="endTime"]');
             
-            if (!textarea) return;
+            if (!textarea) {
+                console.error('❌ Textarea not found in note edit form');
+                showToast('Note edit form is incomplete', 'error');
+                return;
+            }
             
             const newText = textarea.value.trim();
             if (!newText) {
@@ -1806,13 +1912,24 @@
                 return;
             }
             
-            // Parse time inputs
+            // Parse time inputs with validation
             let newStartTime = 0;
             let newEndTime = 0;
             
             if (startTimeInput && endTimeInput) {
-                newStartTime = parseFloat(startTimeInput.value) || 0;
-                newEndTime = parseFloat(endTimeInput.value) || 0;
+                newStartTime = parseFloat(startTimeInput.value);
+                newEndTime = parseFloat(endTimeInput.value);
+                
+                // Validate time values
+                if (isNaN(newStartTime) || isNaN(newEndTime)) {
+                    showToast('Please enter valid time values', 'error');
+                    return;
+                }
+                
+                if (newStartTime < 0 || newEndTime < 0) {
+                    showToast('Time values cannot be negative', 'error');
+                    return;
+                }
                 
                 if (newStartTime >= newEndTime) {
                     showToast('End time must be greater than start time', 'error');
@@ -1820,10 +1937,37 @@
                 }
             }
             
+            console.log('📝 Updating note with data:', {
+                noteId,
+                newText,
+                newStartTime,
+                newEndTime
+            });
+            
             try {
                 if (USE_CLOUD) {
                     const token = localStorage.getItem('cloudToken');
-                    const response = await fetch(`${API_BASE}/notes/${noteId}`, {
+                    if (!token) {
+                        showToast('Authentication token not found', 'error');
+                        return;
+                    }
+                    
+                    // Find the note to get the correct ID format
+                    const note = notes.find(n => n.id === noteId || n._id === noteId);
+                    const allNote = allNotes.find(n => n.id === noteId || n._id === noteId);
+                    
+                    if (!note) {
+                        console.error('❌ Note not found for editing:', noteId);
+                        showToast('Note not found for editing', 'error');
+                        return;
+                    }
+                    
+                    // Use the correct ID format (prefer _id if available)
+                    const actualNoteId = note._id || note.id || noteId;
+                    
+                    console.log('🔍 Sending update request for note:', actualNoteId);
+                    
+                    const response = await fetch(`${API_BASE}/notes/${actualNoteId}`, {
                         method: 'PUT',
                         headers: { 
                             'Content-Type': 'application/json',
@@ -1836,26 +1980,27 @@
                         })
                     });
                     
+                    console.log('📡 Update response status:', response.status);
+                    
                     if (response.ok) {
-                        // Update local note
-                        const note = notes.find(n => n.id === noteId);
+                        const responseData = await response.json();
+                        console.log('✅ Note updated successfully:', responseData);
+                        
+                        // Update local note arrays
                         if (note) {
                             note.text = newText;
                             note.startTime = newStartTime;
                             note.endTime = newEndTime;
                         }
                         
-                        const allNote = allNotes.find(n => n.id === noteId);
                         if (allNote) {
                             allNote.text = newText;
                             allNote.startTime = newStartTime;
                             allNote.endTime = newEndTime;
                         }
                         
-                        // Refresh notes from server to ensure consistency
-                        if (currentVideoId) {
-                            await loadVideoNotes(currentVideoId);
-                        }
+                        // Exit edit mode
+                        cancelNoteEdit(noteId);
                         
                         // Update displays
                         renderCurrentVideoNotes();
@@ -1866,35 +2011,60 @@
                         // Save current page state
                         savePageState();
                     } else {
-                        const errorData = await response.json().catch(() => ({}));
-                        console.error('Server error:', errorData);
-                        showToast(`Failed to update note: ${errorData.message || 'Server error'}`, 'error');
+                        let errorMessage = 'Server error';
+                        try {
+                            const errorData = await response.json();
+                            errorMessage = errorData.message || errorData.error || 'Server error';
+                            console.error('❌ Server error details:', errorData);
+                        } catch (parseError) {
+                            console.error('❌ Failed to parse error response:', parseError);
+                        }
+                        
+                        console.error('❌ Failed to update note. Status:', response.status);
+                        showToast(`Failed to update note: ${errorMessage}`, 'error');
                     }
                 } else {
                     // localStorage fallback
-                    const note = notes.find(n => n.id === noteId);
+                    console.log('📝 Using localStorage fallback for note update');
+                    
+                    // Find notes with ID compatibility
+                    const note = notes.find(n => n.id === noteId || n._id === noteId);
+                    const allNote = allNotes.find(n => n.id === noteId || n._id === noteId);
+                    
                     if (note) {
                         note.text = newText;
                         note.startTime = newStartTime;
                         note.endTime = newEndTime;
+                        console.log('✅ Updated note in notes array');
+                    } else {
+                        console.error('❌ Note not found in notes array for localStorage update');
                     }
                     
-                    const allNote = allNotes.find(n => n.id === noteId);
                     if (allNote) {
                         allNote.text = newText;
                         allNote.startTime = newStartTime;
                         allNote.endTime = newEndTime;
+                        console.log('✅ Updated note in allNotes array');
+                    } else {
+                        console.error('❌ Note not found in allNotes array for localStorage update');
                     }
                     
-                    // Update localStorage
+                    // Update localStorage with ID compatibility
                     const userNotes = JSON.parse(localStorage.getItem(`notes_${currentUser.id}`) || '[]');
-                    const noteIndex = userNotes.findIndex(n => n.id === noteId);
+                    const noteIndex = userNotes.findIndex(n => n.id === noteId || n._id === noteId);
+                    
                     if (noteIndex !== -1) {
                         userNotes[noteIndex].text = newText;
                         userNotes[noteIndex].startTime = newStartTime;
                         userNotes[noteIndex].endTime = newEndTime;
                         localStorage.setItem(`notes_${currentUser.id}`, JSON.stringify(userNotes));
+                        console.log('✅ Updated note in localStorage');
+                    } else {
+                        console.error('❌ Note not found in localStorage for update');
                     }
+                    
+                    // Exit edit mode
+                    cancelNoteEdit(noteId);
                     
                     // Update displays
                     renderCurrentVideoNotes();
