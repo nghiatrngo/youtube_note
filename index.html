@@ -715,47 +715,109 @@
 
         // Load video notes
         async function loadVideoNotes(videoId) {
-            if (!currentUser) return;
+            // Check if user is authenticated via cloud or localStorage
+            let user = currentUser;
+            if (!user && USE_CLOUD) {
+                const cloudUser = localStorage.getItem('cloudUser');
+                if (cloudUser) {
+                    user = JSON.parse(cloudUser);
+                    currentUser = user; // Set currentUser for future use
+                }
+            }
+            if (!user) {
+                const localUser = localStorage.getItem('currentUser');
+                if (localUser) {
+                    user = JSON.parse(localUser);
+                    currentUser = user; // Set currentUser for future use
+                }
+            }
+            
+            if (!user) {
+                console.log('No user authenticated, cannot load video notes');
+                return;
+            }
             
             try {
                 if (USE_CLOUD) {
                     const token = localStorage.getItem('cloudToken');
+                    if (!token) {
+                        console.log('No cloud token found');
+                        return;
+                    }
+                    
                     const response = await fetch(`${API_BASE}/notes/video/${videoId}`, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     
                     if (response.ok) {
                         const data = await response.json();
-                        notes = data.notes;
+                        notes = data.notes || [];
+                        renderCurrentVideoNotes();
+                    } else {
+                        console.log('Failed to fetch cloud notes:', response.status);
+                        notes = [];
                         renderCurrentVideoNotes();
                     }
                 } else {
                     // localStorage fallback
-                    const userNotes = JSON.parse(localStorage.getItem(`notes_${currentUser.id}`) || '[]');
+                    const userNotes = JSON.parse(localStorage.getItem(`notes_${user.id}`) || '[]');
                     notes = userNotes.filter(note => note.videoId === videoId);
                     renderCurrentVideoNotes();
                 }
             } catch (error) {
                 console.error('Failed to load video notes:', error);
-                showToast('Failed to load video notes', 'error');
+                notes = [];
+                renderCurrentVideoNotes();
             }
         }
 
         // Load user notes
         async function loadUserNotes() {
-            if (!currentUser) return;
+            // Check if user is authenticated via cloud or localStorage
+            let user = currentUser;
+            if (!user && USE_CLOUD) {
+                const cloudUser = localStorage.getItem('cloudUser');
+                if (cloudUser) {
+                    user = JSON.parse(cloudUser);
+                    currentUser = user; // Set currentUser for future use
+                }
+            }
+            if (!user) {
+                const localUser = localStorage.getItem('currentUser');
+                if (localUser) {
+                    user = JSON.parse(localUser);
+                    currentUser = user; // Set currentUser for future use
+                }
+            }
+            
+            if (!user) {
+                console.log('No user authenticated, cannot load user notes');
+                return;
+            }
             
             try {
                 if (USE_CLOUD) {
                     const token = localStorage.getItem('cloudToken');
+                    if (!token) {
+                        console.log('No cloud token found');
+                        return;
+                    }
+                    
                     const response = await fetch(`${API_BASE}/notes`, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     
                     if (response.ok) {
                         const data = await response.json();
-                        allNotes = data.notes;
+                        allNotes = data.notes || [];
                         notes = allNotes.filter(note => note.videoId === currentVideoId);
+                        renderCurrentVideoNotes();
+                        renderAllNotesSidebar();
+                        updateUserProfile();
+                    } else {
+                        console.log('Failed to fetch cloud notes:', response.status);
+                        allNotes = [];
+                        notes = [];
                         renderCurrentVideoNotes();
                         renderAllNotesSidebar();
                         updateUserProfile();
@@ -771,21 +833,35 @@
                 }
             } catch (error) {
                 console.error('Failed to load user notes:', error);
-                showToast('Failed to load notes', 'error');
+                allNotes = [];
+                notes = [];
+                renderCurrentVideoNotes();
+                renderAllNotesSidebar();
+                updateUserProfile();
             }
         }
 
         // Render current video notes
         function renderCurrentVideoNotes() {
+            console.log('🔍 renderCurrentVideoNotes called');
+            console.log('currentVideoId:', currentVideoId);
+            console.log('notes:', notes);
+            console.log('currentUser:', currentUser);
+            
             const container = document.getElementById('current-video-notes');
-            if (!container) return;
+            if (!container) {
+                console.log('❌ current-video-notes container not found');
+                return;
+            }
             
             if (!currentVideoId) {
+                console.log('❌ No currentVideoId');
                 container.innerHTML = '<p class="text-gray-500 text-center py-8">No video loaded</p>';
                 return;
             }
             
             if (notes.length === 0) {
+                console.log('❌ No notes found for video:', currentVideoId);
                 container.innerHTML = '<p class="text-gray-500 text-center py-8">No notes for this video yet</p>';
                 return;
             }
