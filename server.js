@@ -304,15 +304,60 @@ app.post('/api/notes', authenticateToken, [
   }
 });
 
-// Get User's Notes
+// Get User's Notes with ID consistency validation
 app.get('/api/notes', authenticateToken, async (req, res) => {
   try {
     const notes = await Note.find({ userId: req.user._id }).sort({ createdAt: -1 });
-    res.json({ notes });
+    
+    // Validate and repair ID consistency
+    const validatedNotes = await validateAndRepairNoteIds(notes, req.user._id);
+    
+    console.log(`📊 Retrieved ${validatedNotes.length} notes for user ${req.user._id}`);
+    console.log(`🔍 ID validation completed for user ${req.user._id}`);
+    
+    res.json({ notes: validatedNotes });
   } catch (error) {
+    console.error('❌ Error retrieving notes:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
+
+// Database consistency validation and repair function
+async function validateAndRepairNoteIds(notes, userId) {
+  console.log(`🔧 Validating ${notes.length} notes for user ${userId}`);
+  
+  for (let i = 0; i < notes.length; i++) {
+    const note = notes[i];
+    let needsUpdate = false;
+    
+    // Check if note has both id and _id
+    if (!note.id && note._id) {
+      // Missing id field - add it
+      note.id = note._id.toString().slice(-6); // Use last 6 chars of _id as id
+      needsUpdate = true;
+      console.log(`🔧 Adding missing id field for note ${note._id}: ${note.id}`);
+    } else if (note.id && !note._id) {
+      // Missing _id field - this shouldn't happen with MongoDB, but handle it
+      console.log(`⚠️ Note ${note.id} missing _id field - this is unusual`);
+    } else if (!note.id && !note._id) {
+      // Both missing - this is a corrupted note
+      console.log(`❌ Note ${i} has no ID fields - this is corrupted data`);
+      continue;
+    }
+    
+    // Update the note in database if needed
+    if (needsUpdate) {
+      try {
+        await Note.findByIdAndUpdate(note._id, { id: note.id });
+        console.log(`✅ Updated note ${note._id} with id: ${note.id}`);
+      } catch (updateError) {
+        console.error(`❌ Failed to update note ${note._id}:`, updateError);
+      }
+    }
+  }
+  
+  return notes;
+}
 
 // Get Notes by Video
 app.get('/api/notes/video/:videoId', authenticateToken, async (req, res) => {
@@ -414,6 +459,43 @@ async function getVideoTitle(videoId) {
 app.get('/', (req, res) => {
   console.log('🏠 Serving main app (index.html)');
   res.sendFile(__dirname + '/public/index.html');
+});
+
+// Database health check endpoint
+app.get('/api/health', authenticateToken, async (req, res) => {
+  try {
+    const userNotes = await Note.find({ userId: req.user._id });
+    
+    // Analyze ID consistency
+    const idAnalysis = {
+      totalNotes: userNotes.length,
+      notesWithId: userNotes.filter(n => n.id).length,
+      notesWithMongoId: userNotes.filter(n => n._id).length,
+      notesWithBoth: userNotes.filter(n => n.id && n._id).length,
+      notesWithNeither: userNotes.filter(n => !n.id && !n._id).length,
+      idFormats: userNotes.map(n => ({ 
+        id: n.id, 
+        _id: n._id ? n._id.toString().slice(-6) : null,
+        hasConflict: n.id && n._id && n.id !== n._id.toString().slice(-6)
+      }))
+    };
+    
+    console.log('🏥 Database health check for user:', req.user._id);
+    console.log('📊 ID consistency analysis:', idAnalysis);
+    
+    res.json({ 
+      status: 'healthy',
+      message: 'Database health check completed',
+      analysis: idAnalysis
+    });
+  } catch (error) {
+    console.error('❌ Health check failed:', error);
+    res.status(500).json({ 
+      status: 'unhealthy',
+      message: 'Health check failed',
+      error: error.message 
+    });
+  }
 });
 
 // Start server

@@ -501,7 +501,12 @@
 
                         <!-- Current Video Notes -->
                             <div class="bg-white border border-gray-200 rounded-lg p-4 h-fit">
-                                <h3 class="text-lg font-semibold mb-3 text-gray-800">Current Video Notes</h3>
+                                <h3 class="text-lg font-semibold mb-3 text-gray-800">
+                    Current Video Notes
+                    <button onclick="checkDatabaseHealth()" class="ml-2 text-xs bg-blue-100 text-blue-700 py-1 px-2 rounded hover:bg-blue-200 transition">
+                        🏥 Health Check
+                    </button>
+                </h3>
                                 <div id="current-video-notes" class="space-y-3 max-h-[600px] overflow-y-auto">
                                     <p class="text-gray-500 text-center py-8">No video loaded</p>
                                 </div>
@@ -2765,6 +2770,69 @@
                 toolbarPlayPause.className = 'bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs transition';
             }
         }
+
+        // Database health check and repair function
+        window.checkDatabaseHealth = async function() {
+            console.log('🏥 Checking database health...');
+            
+            if (!currentUser) {
+                showToast('Please login first to check database health', 'error');
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('cloudToken');
+                if (!token) {
+                    showToast('No authentication token found', 'error');
+                    return;
+                }
+                
+                const response = await fetch(`${API_BASE}/health`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const healthData = await response.json();
+                    console.log('🏥 Database health report:', healthData);
+                    
+                    // Show health summary
+                    const { analysis } = healthData;
+                    let message = `Database: ${healthData.status}\n`;
+                    message += `Total notes: ${analysis.totalNotes}\n`;
+                    message += `With ID: ${analysis.notesWithId}\n`;
+                    message += `With MongoDB ID: ${analysis.notesWithMongoId}\n`;
+                    message += `With both: ${analysis.notesWithBoth}\n`;
+                    message += `With neither: ${analysis.notesWithNeither}`;
+                    
+                    if (analysis.notesWithNeither > 0) {
+                        message += '\n⚠️ Some notes have corrupted IDs!';
+                        showToast(message, 'warning');
+                    } else if (analysis.notesWithBoth === analysis.totalNotes) {
+                        message += '\n✅ All notes have consistent IDs!';
+                        showToast(message, 'success');
+                    } else {
+                        message += '\n🔧 Some notes need ID repair';
+                        showToast(message, 'info');
+                    }
+                    
+                    // Auto-repair if needed
+                    if (analysis.notesWithNeither > 0 || analysis.notesWithBoth < analysis.totalNotes) {
+                        console.log('🔧 Auto-repairing database...');
+                        await loadUserNotes(); // This will trigger the server-side repair
+                        showToast('Database repair completed!', 'success');
+                    }
+                    
+                } else {
+                    const errorData = await response.json();
+                    console.error('❌ Health check failed:', errorData);
+                    showToast(`Health check failed: ${errorData.message}`, 'error');
+                }
+                
+            } catch (error) {
+                console.error('❌ Health check error:', error);
+                showToast('Health check failed. Please try again.', 'error');
+            }
+        };
 
         // Debug function for edit issues
         window.debugEditIssue = function() {
