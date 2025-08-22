@@ -8,9 +8,30 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
+// CORS Configuration
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN || 'https://nghiatrngo.github.io',
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
+
+// Additional CORS headers middleware
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', process.env.CORS_ORIGIN || 'https://nghiatrngo.github.io');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
 
 // Database connection (will be set in Render environment variables)
 const pool = new Pool({
@@ -288,6 +309,55 @@ app.get('/api/notes/video/:videoId', authenticateToken, async (req, res) => {
     }
 });
 
+// Update note
+app.put('/api/notes/:id', authenticateToken, async (req, res) => {
+    try {
+        console.log('🔍 Update request for note ID:', req.params.id);
+        console.log('📝 Update data:', req.body);
+        console.log('👤 User ID:', req.user.userId);
+        
+        const { id } = req.params;
+        const userId = req.user.userId;
+        const { text, startTime, endTime } = req.body;
+
+        // Validate required fields
+        if (!text || startTime === undefined || endTime === undefined) {
+            return res.status(400).json({ message: 'Missing required fields: text, startTime, endTime' });
+        }
+
+        // Update the note
+        const result = await pool.query(
+            'UPDATE notes SET text = $1, start_time = $2, end_time = $3 WHERE id = $4 AND user_id = $5 RETURNING *',
+            [text, startTime, endTime, id, userId]
+        );
+
+        if (result.rowCount === 0) {
+            console.log('❌ Note not found for update');
+            return res.status(404).json({ message: 'Note not found' });
+        }
+
+        const updatedNote = result.rows[0];
+        console.log('✅ Note updated successfully:', updatedNote);
+        
+        res.json({ 
+            message: 'Note updated successfully', 
+            note: {
+                id: updatedNote.id,
+                videoId: updatedNote.video_id,
+                videoTitle: updatedNote.video_title,
+                startTime: updatedNote.start_time,
+                endTime: updatedNote.end_time,
+                text: updatedNote.text,
+                userId: updatedNote.user_id,
+                createdAt: updatedNote.created_at
+            }
+        });
+    } catch (error) {
+        console.error('❌ Error updating note:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
 // Delete note
 app.delete('/api/notes/:id', authenticateToken, async (req, res) => {
     try {
@@ -317,6 +387,51 @@ app.get('/health', (req, res) => {
         timestamp: new Date().toISOString(),
         uptime: process.uptime()
     });
+});
+
+// Database health check endpoint for authenticated users
+app.get('/api/health', authenticateToken, async (req, res) => {
+    try {
+        console.log('🏥 Database health check for user:', req.user.userId);
+        
+        // Check database connection
+        const dbCheck = await pool.query('SELECT NOW()');
+        
+        // Get user's notes for analysis
+        const notesResult = await pool.query(
+            'SELECT id, video_id, text, created_at FROM notes WHERE user_id = $1',
+            [req.user.userId]
+        );
+        
+        const notes = notesResult.rows;
+        
+        // Analyze note consistency
+        const idAnalysis = {
+            totalNotes: notes.length,
+            notesWithId: notes.filter(n => n.id).length,
+            notesWithValidId: notes.filter(n => n.id && Number.isInteger(n.id)).length,
+            notesWithText: notes.filter(n => n.text && n.text.trim()).length,
+            notesWithVideoId: notes.filter(n => n.video_id && n.video_id.trim()).length,
+            databaseStatus: dbCheck.rowCount > 0 ? 'connected' : 'disconnected'
+        };
+        
+        console.log('📊 Database health analysis:', idAnalysis);
+        
+        res.json({ 
+            status: 'healthy',
+            message: 'Database health check completed',
+            analysis: idAnalysis,
+            database: 'PostgreSQL',
+            connection: 'active'
+        });
+    } catch (error) {
+        console.error('❌ Health check failed:', error);
+        res.status(500).json({ 
+            status: 'unhealthy',
+            message: 'Health check failed',
+            error: error.message 
+        });
+    }
 });
 
 // Start server
