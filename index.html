@@ -628,8 +628,83 @@
                 if (toolbarSetEnd) toolbarSetEnd.addEventListener('click', () => setTime('end'));
                 if (toolbarStopLooping) toolbarStopLooping.addEventListener('click', stopLoop);
                 if (toolbarPlayPause) toolbarPlayPause.addEventListener('click', togglePlayPause);
-                if (toolbarFrameBack) toolbarFrameBack.addEventListener('click', () => seekFrame(-1));
-                if (toolbarFrameForward) toolbarFrameForward.addEventListener('click', () => seekFrame(1));
+                if (toolbarFrameBack) {
+                    let frameBackInterval;
+                    
+                    // Mouse events for desktop
+                    toolbarFrameBack.addEventListener('mousedown', () => {
+                        // Start frame seeking every 0.5 seconds
+                        frameBackInterval = setInterval(() => seekFrame(-1), 500);
+                    });
+                    toolbarFrameBack.addEventListener('mouseup', () => {
+                        // Stop frame seeking when mouse is released
+                        if (frameBackInterval) {
+                            clearInterval(frameBackInterval);
+                            frameBackInterval = null;
+                        }
+                    });
+                    toolbarFrameBack.addEventListener('mouseleave', () => {
+                        // Stop frame seeking when mouse leaves button
+                        if (frameBackInterval) {
+                            clearInterval(frameBackInterval);
+                            frameBackInterval = null;
+                        }
+                    });
+                    
+                    // Touch events for mobile
+                    toolbarFrameBack.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        frameBackInterval = setInterval(() => seekFrame(-1), 500);
+                    });
+                    toolbarFrameBack.addEventListener('touchend', () => {
+                        if (frameBackInterval) {
+                            clearInterval(frameBackInterval);
+                            frameBackInterval = null;
+                        }
+                    });
+                    
+                    // Single click/tap for immediate frame movement
+                    toolbarFrameBack.addEventListener('click', () => seekFrame(-1));
+                }
+                
+                if (toolbarFrameForward) {
+                    let frameForwardInterval;
+                    
+                    // Mouse events for desktop
+                    toolbarFrameForward.addEventListener('mousedown', () => {
+                        // Start frame seeking every 0.5 seconds
+                        frameForwardInterval = setInterval(() => seekFrame(1), 500);
+                    });
+                    toolbarFrameForward.addEventListener('mouseup', () => {
+                        // Stop frame seeking when mouse is released
+                        if (frameForwardInterval) {
+                            clearInterval(frameForwardInterval);
+                            frameForwardInterval = null;
+                        }
+                    });
+                    toolbarFrameForward.addEventListener('mouseleave', () => {
+                        // Stop frame seeking when mouse leaves button
+                        if (frameForwardInterval) {
+                            clearInterval(frameForwardInterval);
+                            frameForwardInterval = null;
+                        }
+                    });
+                    
+                    // Touch events for mobile
+                    toolbarFrameForward.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        frameForwardInterval = setInterval(() => seekFrame(1), 500);
+                    });
+                    toolbarFrameForward.addEventListener('touchend', () => {
+                        if (frameForwardInterval) {
+                            clearInterval(frameForwardInterval);
+                            frameForwardInterval = null;
+                        }
+                    });
+                    
+                    // Single click/tap for immediate frame movement
+                    toolbarFrameForward.addEventListener('click', () => seekFrame(1));
+                }
                 if (toolbarSpeed50) {
                     let isActive = false;
                     toolbarSpeed50.addEventListener('click', () => {
