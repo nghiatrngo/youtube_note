@@ -361,6 +361,14 @@
             // Note taking event listeners
             if (addNoteBtn) addNoteBtn.addEventListener('click', handleAddNote);
             
+            // Login button event listener
+            const loginBtn = document.getElementById('login-btn');
+            if (loginBtn) loginBtn.addEventListener('click', showAuthModal);
+            
+            // Close auth modal button
+            const closeAuthBtn = document.getElementById('close-auth');
+            if (closeAuthBtn) closeAuthBtn.addEventListener('click', hideAuthModal);
+            
             // Initialize UI elements
             if (stopLoopingBtn) {
                 stopLoopingBtn.classList.add('hidden');
