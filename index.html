@@ -2051,12 +2051,28 @@
                         return;
                     }
                     
-                    // Find the note to get the correct ID format
-                    const note = notes.find(n => n.id === noteId || n._id === noteId);
-                    const allNote = allNotes.find(n => n.id === noteId || n._id === noteId);
+                    // Convert noteId to both string and number for comparison (same logic as editNote)
+                    const noteIdStr = String(noteId);
+                    const noteIdNum = Number(noteId);
+                    
+                    // Find the note to get the correct ID format with proper type conversion
+                    const note = notes.find(n => 
+                        String(n.id) === noteIdStr || String(n._id) === noteIdStr ||
+                        Number(n.id) === noteIdNum || Number(n._id) === noteIdNum
+                    );
+                    const allNote = allNotes.find(n => 
+                        String(n.id) === noteIdStr || String(n._id) === noteIdStr ||
+                        Number(n.id) === noteIdNum || Number(n._id) === noteIdNum
+                    );
                     
                     if (!note) {
                         console.error('❌ Note not found for editing:', noteId);
+                        console.log('🔍 Search details:', {
+                            noteId,
+                            noteIdStr,
+                            noteIdNum,
+                            availableIds: notes.map(n => ({ id: n.id, _id: n._id }))
+                        });
                         showToast('Note not found for editing', 'error');
                         return;
                     }
