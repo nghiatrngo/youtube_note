@@ -195,7 +195,7 @@
                         </div>
 
                         <!-- Note Taking Area -->
-                        <div id="note-taker" class="hidden bg-gray-50 p-4 rounded-lg">
+                        <div id="note-taker" class="bg-gray-50 p-4 rounded-lg">
                             <h3 class="text-xl font-semibold mb-3">Create a Clip</h3>
                             <div class="grid grid-cols-2 gap-4 mb-3">
                                 <button id="set-start-time" class="bg-cyan-500 text-white font-semibold py-2 rounded-lg hover:bg-cyan-600 transition">Set Start</button>
@@ -365,11 +365,19 @@
         function showAuthModal() {
             authModal.classList.remove('hidden');
             userInfo.classList.add('hidden');
+            // Show login button when showing auth modal
+            if (document.getElementById('login-btn')) {
+                document.getElementById('login-btn').classList.remove('hidden');
+            }
         }
 
         function hideAuthModal() {
             authModal.classList.add('hidden');
             userInfo.classList.remove('hidden');
+            // Hide login button when user is logged in
+            if (document.getElementById('login-btn')) {
+                document.getElementById('login-btn').classList.add('hidden');
+            }
             usernameDisplay.textContent = currentUser.username;
             updateUserProfile();
         }
@@ -534,6 +542,12 @@
             currentUser = null;
             notes = [];
             allNotes = [];
+            
+            // Show login button and auth modal after logout
+            if (document.getElementById('login-btn')) {
+                document.getElementById('login-btn').classList.remove('hidden');
+            }
+            
             showAuthModal();
             showToast('Logged out successfully', 'info');
         }
@@ -1093,9 +1107,8 @@
         // Player ready event
         function onPlayerReady(event) {
             console.log('🎬 Player ready');
-            if (noteTaker) {
-                noteTaker.classList.remove('hidden');
-            }
+            // Note taker is now always visible, no need to show/hide
+            console.log('✅ Note taking area is ready');
         }
 
         console.log('✅ Cloud version JavaScript loaded successfully');
