@@ -569,6 +569,19 @@
                                     </select>
                                 </div>
                             </div>
+                            
+                            <!-- Search Bar -->
+                            <div class="flex items-center space-x-3 mb-6">
+                                <div class="flex-1">
+                                    <input type="text" id="note-search-input" placeholder="Search notes..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <button id="search-notes-btn" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                                    🔍 Search
+                                </button>
+                                <button id="clear-search-btn" class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition hidden">
+                                    ❌ Clear
+                                </button>
+                            </div>
                             <div id="all-notes-preview" class="space-y-4">
                                 <!-- Notes will be populated here -->
                             </div>
@@ -712,6 +725,25 @@
                 }
                 if (sortNotesSelect) {
                     sortNotesSelect.addEventListener('change', renderNotePreview);
+                }
+                
+                // Search functionality event listeners
+                const searchInput = document.getElementById('note-search-input');
+                const searchBtn = document.getElementById('search-notes-btn');
+                const clearBtn = document.getElementById('clear-search-btn');
+                
+                if (searchBtn) {
+                    searchBtn.addEventListener('click', searchNotes);
+                }
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', clearSearch);
+                }
+                if (searchInput) {
+                    searchInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            searchNotes();
+                        }
+                    });
                 }
                 
                 // Toolbar event listeners
@@ -3183,18 +3215,17 @@
                 const noteId = note._id || note.id;
                 notesHTML += `
                     <div class="bg-gray-50 border border-gray-200 rounded-lg p-4" data-note-id="${noteId}">
-                        <div class="flex items-start justify-between mb-3">
-                            <div class="flex-1">
-                                <h4 class="font-semibold text-gray-800 mb-2">${escapeHTML(note.text.substring(0, 100))}${note.text.length > 100 ? '...' : ''}</h4>
-                                <div class="text-sm text-gray-600 mb-2">
-                                    <span class="font-mono">${formatTime(note.startTime)} → ${formatTime(note.endTime)}</span>
-                                    <span class="mx-2">•</span>
-                                    <span class="text-blue-600">${escapeHTML(note.videoTitle || note.videoId)}</span>
-                                </div>
-                                <div class="text-xs text-gray-500">
-                                    Created: ${new Date(note.createdAt || note.created_at).toLocaleDateString()}
-                                </div>
-                            </div>
+                                                        <div class="flex items-start justify-between mb-3">
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-gray-800 mb-2">${escapeHTML(note.text.substring(0, 100))}${note.text.length > 100 ? '...' : ''}</h4>
+                                        <div class="text-sm text-gray-600 mb-2">
+                                            <span class="font-mono">${formatTime(note.startTime)} → ${formatTime(note.endTime)}</span>
+                                            <span class="mx-2">•</span>
+                                            <span class="text-blue-600">${escapeHTML(note.videoTitle || note.videoId)}</span>
+                                            <span class="mx-2">•</span>
+                                            <span class="text-xs text-gray-500">Created: ${new Date(note.createdAt || note.created_at).toLocaleDateString()}</span>
+                                        </div>
+                                    </div>
                                                             <div class="flex items-center space-x-2">
                                     <button onclick="goToNoteInVideo('${noteId}')" class="text-indigo-600 hover:text-indigo-800 text-sm px-2 py-1 rounded border border-indigo-200 hover:bg-indigo-50">
                                         🎬 Go To
@@ -3432,6 +3463,85 @@
                     renderNotePreview();
                 }, 500);
             }
+        }
+
+        // Search functionality
+        let searchQuery = '';
+        let originalNotes = [];
+
+        function searchNotes() {
+            const searchInput = document.getElementById('note-search-input');
+            const searchBtn = document.getElementById('search-notes-btn');
+            const clearBtn = document.getElementById('clear-search-btn');
+            
+            searchQuery = searchInput.value.trim().toLowerCase();
+            
+            if (!searchQuery) {
+                showToast('Please enter a search term', 'error');
+                return;
+            }
+            
+            // Store original notes if this is the first search
+            if (originalNotes.length === 0) {
+                originalNotes = [...allNotes];
+            }
+            
+            // Filter notes based on search query
+            const filteredNotes = allNotes.filter(note => 
+                note.text.toLowerCase().includes(searchQuery) ||
+                (note.videoTitle && note.videoTitle.toLowerCase().includes(searchQuery)) ||
+                note.videoId.toLowerCase().includes(searchQuery)
+            );
+            
+            if (filteredNotes.length === 0) {
+                document.getElementById('all-notes-preview').innerHTML = `
+                    <div class="text-center py-8">
+                        <p class="text-gray-500 text-lg">No notes found matching "${searchQuery}"</p>
+                        <p class="text-gray-400 text-sm mt-2">Try a different search term</p>
+                    </div>
+                `;
+            } else {
+                // Temporarily replace allNotes with filtered results
+                const tempNotes = [...allNotes];
+                allNotes = filteredNotes;
+                
+                // Render filtered notes
+                renderNotePreview();
+                
+                // Restore original allNotes
+                allNotes = tempNotes;
+                
+                showToast(`Found ${filteredNotes.length} note(s) matching "${searchQuery}"`, 'success');
+            }
+            
+            // Show clear button, hide search button
+            searchBtn.classList.add('hidden');
+            clearBtn.classList.remove('hidden');
+        }
+
+        function clearSearch() {
+            const searchInput = document.getElementById('note-search-input');
+            const searchBtn = document.getElementById('search-notes-btn');
+            const clearBtn = document.getElementById('clear-search-btn');
+            
+            // Clear search input
+            searchInput.value = '';
+            searchQuery = '';
+            
+            // Restore original notes
+            if (originalNotes.length > 0) {
+                allNotes = [...originalNotes];
+                originalNotes = [];
+            }
+            
+            // Re-render all notes
+            renderNotePreview();
+            
+            // Show search button, hide clear button
+            searchBtn.classList.remove('hidden');
+            clearBtn.classList.add('hidden');
+            
+            showToast('Search cleared, showing all notes', 'info');
         }
 
         // Go to note in video view with loop
