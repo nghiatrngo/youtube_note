@@ -1296,6 +1296,16 @@
                     if (response.ok) {
                         const data = await response.json();
                         allNotes = data.notes || [];
+                        console.log('📊 Cloud notes loaded, checking ID format:');
+                        if (allNotes.length > 0) {
+                            console.log('📝 First note ID format:', {
+                                id: allNotes[0].id,
+                                _id: allNotes[0]._id,
+                                hasOwnProperty_id: allNotes[0].hasOwnProperty('_id'),
+                                hasOwnProperty_id: allNotes[0].hasOwnProperty('id')
+                            });
+                        }
+                        
                         // Only filter notes if there's a current video selected
                         if (currentVideoId) {
                             notes = allNotes.filter(note => note.videoId === currentVideoId);
@@ -1374,16 +1384,18 @@
             
             let notesHTML = '';
             notes.forEach((note, index) => {
+                const noteId = getNoteId(note);
                 console.log(`Rendering note ${index}:`, note);
+                console.log(`📝 Note ID for rendering: ${noteId}`);
                 notesHTML += `
-                    <div class="bg-gray-50 p-3 rounded-lg border" data-note-id="${note.id || note._id}">
+                    <div class="bg-gray-50 p-3 rounded-lg border" data-note-id="${noteId}">
                         <div class="flex justify-between items-start mb-2">
-                            <span class="font-mono text-sm text-blue-600 note-time-display" data-note-id="${note.id || note._id}">${formatTime(note.startTime)} → ${formatTime(note.endTime)}</span>
-                            <button onclick="deleteNote('${note.id || note._id}')" class="text-red-500 hover:text-red-700 text-sm">×</button>
+                            <span class="font-mono text-sm text-blue-600 note-time-display" data-note-id="${noteId}">${formatTime(note.startTime)} → ${formatTime(note.endTime)}</span>
+                            <button onclick="deleteNote('${noteId}')" class="text-red-500 hover:text-red-700 text-sm">×</button>
                         </div>
                         <div class="note-content">
-                            <p class="text-gray-700 text-sm note-text" data-note-id="${note.id}">${escapeHTML(note.text)}</p>
-                            <div class="note-edit hidden" data-note-id="${note.id}">
+                            <p class="text-gray-700 text-sm note-text" data-note-id="${noteId}">${escapeHTML(note.text)}</p>
+                            <div class="note-edit hidden" data-note-id="${noteId}">
                                 <div class="space-y-3">
                                     <div>
                                         <label class="block text-xs text-gray-600 mb-1">Start Time (seconds)</label>
@@ -1398,8 +1410,8 @@
                                         <textarea class="w-full p-2 border border-gray-300 rounded text-sm" rows="2">${escapeHTML(note.text)}</textarea>
                                     </div>
                                     <div class="flex space-x-2">
-                                        <button onclick="saveNoteEdit('${note.id}')" class="text-xs bg-green-500 text-white py-1 px-2 rounded hover:bg-green-600 transition">Save</button>
-                                        <button onclick="cancelNoteEdit('${note.id}')" class="text-xs bg-gray-500 text-white py-1 px-2 rounded hover:bg-gray-600 transition">Cancel</button>
+                                        <button onclick="saveNoteEdit('${noteId}')" class="text-xs bg-green-500 text-white py-1 px-2 rounded hover:bg-green-600 transition">Save</button>
+                                        <button onclick="cancelNoteEdit('${noteId}')" class="text-xs bg-gray-500 text-white py-1 px-2 rounded hover:bg-gray-600 transition">Cancel</button>
                                     </div>
                                 </div>
                             </div>
@@ -1408,13 +1420,13 @@
                             <button onclick="seekToTime(${note.startTime})" class="text-xs bg-blue-100 text-blue-700 py-1 px-2 rounded hover:bg-blue-200 transition">
                                 Go to Start
                             </button>
-                            <button onclick="stopLoop()" class="text-xs bg-red-100 text-red-700 py-1 px-2 rounded hover:bg-red-200 transition hidden" id="stop-loop-${note.id || note._id}">
+                            <button onclick="stopLoop()" class="text-xs bg-red-100 text-red-700 py-1 px-2 rounded hover:bg-red-200 transition hidden" id="stop-loop-${noteId}">
                                 Stop Loop
                             </button>
-                            <button onclick="playClip(${note.startTime}, ${note.endTime}, '${note.id || note._id}')" class="text-xs bg-green-100 text-green-700 py-1 px-2 rounded hover:bg-green-200 transition">
+                            <button onclick="playClip(${note.startTime}, ${note.endTime}, '${noteId}')" class="text-xs bg-green-100 text-green-700 py-1 px-2 rounded hover:bg-green-200 transition">
                                 Play Clip
                             </button>
-                            <button onclick="editNote('${note.id || note._id}')" class="text-xs bg-yellow-100 text-yellow-700 py-1 px-2 rounded hover:bg-yellow-200 transition">
+                            <button onclick="editNote('${noteId}')" class="text-xs bg-yellow-100 text-yellow-700 py-1 px-2 rounded hover:bg-yellow-200 transition">
                                 Edit
                             </button>
                         </div>
@@ -1742,6 +1754,11 @@
             }
         }
         
+        // Helper function to get consistent note ID
+        function getNoteId(note) {
+            return note._id || note.id;
+        }
+        
         // Debug function to test note editing functionality
         window.debugNoteEditing = function() {
             console.log('🔍 Debug: Testing note editing functionality');
@@ -1795,12 +1812,22 @@
         // Note editing functions
         window.editNote = function(noteId) {
             console.log('🔍 editNote called with noteId:', noteId);
+            console.log('📊 Current notes array:', notes);
+            console.log('📊 Current allNotes array:', allNotes);
+            console.log('🔍 Looking for note with ID:', noteId);
             
             if (!noteId) {
                 console.error('❌ No noteId provided to editNote');
                 showToast('Invalid note ID for editing', 'error');
                 return;
             }
+            
+            // Debug: Check all notes for this ID
+            const allNotesWithId = allNotes.filter(n => n.id === noteId || n._id === noteId);
+            const notesWithId = notes.filter(n => n.id === noteId || n._id === noteId);
+            
+            console.log('🔍 Found in allNotes:', allNotesWithId);
+            console.log('🔍 Found in notes:', notesWithId);
             
             const noteText = document.querySelector(`.note-text[data-note-id="${noteId}"]`);
             const noteEdit = document.querySelector(`.note-edit[data-note-id="${noteId}"]`);
@@ -1817,6 +1844,7 @@
             const note = notes.find(n => n.id === noteId || n._id === noteId);
             if (!note) {
                 console.error('❌ Note not found in data for noteId:', noteId);
+                console.log('❌ Available note IDs in notes array:', notes.map(n => ({ id: n.id, _id: n._id })));
                 showToast('Note data not found', 'error');
                 return;
             }
