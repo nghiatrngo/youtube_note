@@ -1853,19 +1853,19 @@
             }
         }
         
-        function playClip(startTime, endTime) {
+        function playClip(startTime, endTime, noteId = null) {
             if (player && typeof player.seekTo === 'function') {
                 player.seekTo(startTime);
                 player.playVideo();
                 
                 // Set up loop for this clip
                 stopLoop();
-                startLoop(startTime, endTime, -1);
+                startLoop(startTime, endTime, -1, noteId);
                 showToast(`Playing clip from ${formatTime(startTime)} to ${formatTime(endTime)}`, 'info');
             }
         }
 
-        function startLoop(startTime, endTime, index) {
+        function startLoop(startTime, endTime, index, noteId = null) {
             if (!player || typeof player.seekTo !== 'function') return;
             stopLoop();
             loopingNoteIndex = index;
