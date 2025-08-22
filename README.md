@@ -4,12 +4,14 @@ A web-based tool that lets you load a YouTube video, take timestamped notes, and
 
 ## ✨ Features
 
+- **User Authentication**: Create accounts and log in to save your notes
 - **Video Loading**: Paste any YouTube URL to load the video
 - **Timestamped Notes**: Create notes with start and end times
 - **Clip Generation**: Generate clips with custom time ranges
 - **Loop Playback**: Loop specific sections for focused study
+- **Note Persistence**: Your notes are saved and synced across devices
 - **Responsive Design**: Works on desktop and mobile devices
-- **No Installation**: Pure web app - just open in your browser
+- **Full-Stack App**: Backend API with MongoDB database
 
 ## 🚀 How to Use
 
@@ -23,6 +25,9 @@ A web-based tool that lets you load a YouTube video, take timestamped notes, and
 ## 🛠️ Technology Stack
 
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+)
+- **Backend**: Node.js, Express.js
+- **Database**: MongoDB with Mongoose ODM
+- **Authentication**: JWT tokens with bcrypt password hashing
 - **Styling**: Tailwind CSS
 - **YouTube API**: YouTube IFrame Player API
 - **Responsive Design**: Mobile-first approach with resizable panels
@@ -48,10 +53,23 @@ Visit the live application: [YouTube Note Clipper](https://nghiatrngo.github.io/
    cd youtube_note
    ```
 
-2. Open `index.html` in your web browser
-   - Or use a local server: `python -m http.server 8000`
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-3. Start taking notes on YouTube videos!
+3. Set up MongoDB:
+   - Install MongoDB locally or use MongoDB Atlas
+   - Create a `.env` file based on `env.example`
+
+4. Start the backend server:
+   ```bash
+   npm run dev
+   ```
+
+5. Open your browser to `http://localhost:3000`
+
+6. Create an account and start taking notes on YouTube videos!
 
 ## 🚀 Deploy to GitHub Pages
 

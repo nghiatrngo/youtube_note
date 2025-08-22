@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Note Clipper</title>
+    <title>YouTube Note Clipper - User Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -57,12 +57,72 @@
         #gutter:hover {
             background-color: #d1d5db; /* gray-300 */
         }
+
+        .auth-form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
+    <!-- Authentication Modal -->
+    <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <div id="login-form" class="auth-form">
+                <h2 class="text-2xl font-bold text-center mb-6">Welcome Back</h2>
+                <form id="login-form-element">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="login-email">Email</label>
+                        <input type="email" id="login-email" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="login-password">Password</label>
+                        <input type="password" id="login-password" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition">Sign In</button>
+                </form>
+                <p class="text-center mt-4 text-gray-600">
+                    Don't have an account? 
+                    <button id="show-register" class="text-blue-600 hover:underline">Sign up</button>
+                </p>
+            </div>
+
+            <div id="register-form" class="auth-form hidden">
+                <h2 class="text-2xl font-bold text-center mb-6">Create Account</h2>
+                <form id="register-form-element">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="register-username">Username</label>
+                        <input type="text" id="register-username" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="register-email">Email</label>
+                        <input type="email" id="register-email" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="register-password">Password</label>
+                        <input type="password" id="register-password" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 text-white font-semibold py-3 rounded-lg hover:bg-green-700 transition">Create Account</button>
+                </form>
+                <p class="text-center mt-4 text-gray-600">
+                    Already have an account? 
+                    <button id="show-login" class="text-blue-600 hover:underline">Sign in</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
     <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+        <!-- Header with User Info -->
         <header class="text-center mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <div id="user-info" class="hidden">
+                    <span class="text-gray-600">Welcome, </span>
+                    <span id="username-display" class="font-semibold text-blue-600"></span>
+                    <button id="logout-btn" class="ml-4 text-red-600 hover:text-red-800 text-sm">Logout</button>
+                </div>
+            </div>
             <h1 class="text-4xl font-bold text-gray-900">YouTube Note Clipper</h1>
             <p class="text-lg text-gray-600 mt-2">Create timestamped clips and notes from any YouTube video.</p>
         </header>
@@ -117,7 +177,10 @@
 
                 <!-- Right Panel: Notes List Section -->
                 <div id="right-panel" class="flex flex-col">
-                    <h2 class="text-2xl font-bold mb-4 border-b pb-2">My Notes & Clips</h2>
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h2 class="text-2xl font-bold">My Notes & Clips</h2>
+                        <button id="load-notes" class="text-blue-600 hover:text-blue-800 text-sm">Refresh</button>
+                    </div>
                     <div id="notes-list-container" class="flex-grow bg-gray-50 p-4 rounded-lg overflow-y-auto h-96 max-h-[600px]">
                         <ul id="notes-list" class="space-y-4">
                            <li id="notes-placeholder" class="text-center text-gray-500 py-16">Your notes and clips will be displayed here.</li>
@@ -132,25 +195,182 @@
     <div id="toast" class="fixed bottom-5 right-5 bg-gray-900 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transform translate-y-2 transition-all duration-300"></div>
 
     <script>
-        // 1. YouTube IFrame Player API Setup
+        // API Configuration
+        const API_BASE = 'http://localhost:3000/api';
+        
+        // Global variables
+        let player;
+        let currentVideoId = '';
+        let currentVideoTitle = '';
+        let notes = [];
+        let tempStartTime = 0;
+        let tempEndTime = 0;
+        let authToken = localStorage.getItem('authToken');
+        let currentUser = null;
+
+        // State for looping functionality
+        let loopInterval = null;
+        let loopingNoteIndex = -1;
+
+        // Check authentication on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (authToken) {
+                checkAuth();
+            } else {
+                showAuthModal();
+            }
+        });
+
+        // Authentication functions
+        async function checkAuth() {
+            try {
+                const response = await fetch(`${API_BASE}/auth/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.user;
+                    hideAuthModal();
+                    loadUserNotes();
+                } else {
+                    localStorage.removeItem('authToken');
+                    authToken = null;
+                    showAuthModal();
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                showAuthModal();
+            }
+        }
+
+        function showAuthModal() {
+            document.getElementById('auth-modal').classList.remove('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('register-form').classList.add('hidden');
+        }
+
+        function hideAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+            document.getElementById('user-info').classList.remove('hidden');
+            document.getElementById('username-display').textContent = currentUser.username;
+        }
+
+        // Form event listeners
+        document.getElementById('show-register').addEventListener('click', () => {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.remove('hidden');
+        });
+
+        document.getElementById('show-login').addEventListener('click', () => {
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+        });
+
+        document.getElementById('login-form-element').addEventListener('submit', handleLogin);
+        document.getElementById('register-form-element').addEventListener('submit', handleRegister);
+        document.getElementById('logout-btn').addEventListener('click', handleLogout);
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    currentUser = data.user;
+                    localStorage.setItem('authToken', authToken);
+                    hideAuthModal();
+                    loadUserNotes();
+                    showToast('Login successful!', false);
+                } else {
+                    showToast(data.message, true);
+                }
+            } catch (error) {
+                showToast('Login failed. Please try again.', true);
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    currentUser = data.user;
+                    localStorage.setItem('authToken', authToken);
+                    hideAuthModal();
+                    showToast('Account created successfully!', false);
+                } else {
+                    showToast(data.message, true);
+                }
+            } catch (error) {
+                showToast('Registration failed. Please try again.', true);
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('authToken');
+            authToken = null;
+            currentUser = null;
+            notes = [];
+            currentVideoId = '';
+            showAuthModal();
+            showToast('Logged out successfully', false);
+        }
+
+        // Load user's notes
+        async function loadUserNotes() {
+            if (!authToken) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/notes`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    notes = data.notes;
+                    renderNotes();
+                }
+            } catch (error) {
+                console.error('Failed to load notes:', error);
+            }
+        }
+
+        // YouTube IFrame Player API Setup
         const tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         const firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-        let player;
-        let currentVideoId = '';
-        let notes = [];
-        let tempStartTime = 0;
-        let tempEndTime = 0;
-
-        // State for looping functionality
-        let loopInterval = null;
-        let loopingNoteIndex = -1; // -1 indicates no active loop
-
         function onYouTubeIframeAPIReady() { /* Player initialized on video load */ }
 
-        // 2. DOM Element References
+        // DOM Element References
         const loadVideoBtn = document.getElementById('load-video');
         const urlInput = document.getElementById('youtube-url');
         const noteTaker = document.getElementById('note-taker');
@@ -164,22 +384,33 @@
         const notesPlaceholder = document.getElementById('notes-placeholder');
         const playerPlaceholder = document.getElementById('player-placeholder');
         const toast = document.getElementById('toast');
+        const loadNotesBtn = document.getElementById('load-notes');
 
-        // 3. Event Listeners
+        // Event Listeners
         loadVideoBtn.addEventListener('click', handleLoadVideo);
         urlInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleLoadVideo());
         setStartTimeBtn.addEventListener('click', () => setTime('start'));
         setEndTimeBtn.addEventListener('click', () => setTime('end'));
         addNoteBtn.addEventListener('click', handleAddNote);
+        loadNotesBtn.addEventListener('click', loadUserNotes);
 
-        // 4. Core Functions
+        // Core Functions
         function getYouTubeVideoId(url) {
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
             const match = url.match(regExp);
             return (match && match[2].length === 11) ? match[2] : null;
         }
 
-        function handleLoadVideo() {
+        async function getVideoTitle(videoId) {
+            try {
+                // This is a simple approach - in production you might want to use YouTube Data API
+                return `Video ${videoId}`;
+            } catch (error) {
+                return `Video ${videoId}`;
+            }
+        }
+
+        async function handleLoadVideo() {
             const videoId = getYouTubeVideoId(urlInput.value);
             if (!videoId) {
                 showToast("Invalid YouTube URL.", true);
@@ -190,8 +421,8 @@
 
             if (currentVideoId !== videoId) {
                 currentVideoId = videoId;
-                notes = [];
-                renderNotes();
+                currentVideoTitle = await getVideoTitle(videoId);
+                await loadVideoNotes(videoId);
                 resetNoteTaker();
             }
             
@@ -212,6 +443,26 @@
             noteTaker.classList.remove('hidden');
         }
 
+        async function loadVideoNotes(videoId) {
+            if (!authToken) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/notes/video/${videoId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    notes = data.notes;
+                    renderNotes();
+                }
+            } catch (error) {
+                console.error('Failed to load video notes:', error);
+            }
+        }
+
         function setTime(type) {
             if (!player || typeof player.getCurrentTime !== 'function') {
                 showToast("Player not ready.", true);
@@ -227,7 +478,12 @@
             }
         }
 
-        function handleAddNote() {
+        async function handleAddNote() {
+            if (!authToken) {
+                showToast("Please log in to save notes.", true);
+                return;
+            }
+
             const text = noteText.value.trim();
             if (!text) {
                 showToast("Note content cannot be empty.", true);
@@ -238,11 +494,36 @@
                 return;
             }
 
-            notes.push({ startTime: tempStartTime, endTime: tempEndTime, text: text });
-            notes.sort((a, b) => a.startTime - b.startTime);
+            try {
+                const response = await fetch(`${API_BASE}/notes`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        videoId: currentVideoId,
+                        videoTitle: currentVideoTitle,
+                        startTime: tempStartTime,
+                        endTime: tempEndTime,
+                        text: text
+                    })
+                });
 
-            renderNotes();
-            resetNoteTaker();
+                if (response.ok) {
+                    const data = await response.json();
+                    notes.push(data.note);
+                    notes.sort((a, b) => a.startTime - b.startTime);
+                    renderNotes();
+                    resetNoteTaker();
+                    showToast('Note saved successfully!', false);
+                } else {
+                    const errorData = await response.json();
+                    showToast(errorData.message || 'Failed to save note.', true);
+                }
+            } catch (error) {
+                showToast('Failed to save note. Please try again.', true);
+            }
         }
 
         function renderNotes() {
@@ -270,7 +551,7 @@
                         <div class="flex items-center gap-2 flex-shrink-0">
                             <button data-time="${note.startTime}" class="seek-btn bg-gray-200 text-gray-800 font-medium px-3 py-2 rounded-md hover:bg-gray-300 transition text-sm">Go to</button>
                             <button data-index="${index}" class="replay-btn ${replayButtonClass} text-white font-medium px-3 py-2 rounded-md transition text-sm">${replayButtonText}</button>
-                            <button data-index="${index}" class="delete-btn text-gray-400 hover:text-red-500 transition p-2 rounded-full">
+                            <button data-id="${note._id}" class="delete-btn text-gray-400 hover:text-red-500 transition p-2 rounded-full">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
                             </button>
                         </div>
@@ -323,16 +604,38 @@
             loopingNoteIndex = -1;
         }
 
-        function handleDeleteNote(e) {
-            const index = e.currentTarget.dataset.index;
-            if (index == loopingNoteIndex) {
-                stopLoop();
+        async function handleDeleteNote(e) {
+            const noteId = e.currentTarget.dataset.id;
+            
+            if (!authToken) {
+                showToast("Please log in to delete notes.", true);
+                return;
             }
-            notes.splice(index, 1);
-            renderNotes();
+
+            try {
+                const response = await fetch(`${API_BASE}/notes/${noteId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    if (notes.find(n => n._id === noteId) === loopingNoteIndex) {
+                        stopLoop();
+                    }
+                    notes = notes.filter(n => n._id !== noteId);
+                    renderNotes();
+                    showToast('Note deleted successfully!', false);
+                } else {
+                    showToast('Failed to delete note.', true);
+                }
+            } catch (error) {
+                showToast('Failed to delete note. Please try again.', true);
+            }
         }
 
-        // 5. Helper and UI Functions
+        // Helper and UI Functions
         function resetNoteTaker() {
             noteText.value = '';
             tempStartTime = 0;
@@ -365,13 +668,13 @@
             return p.innerHTML;
         }
 
-        // 6. Resizable Gutter Logic
+        // Resizable Gutter Logic
         const gutter = document.getElementById('gutter');
         const leftPanel = document.getElementById('left-panel');
         const rightPanel = document.getElementById('right-panel');
 
         gutter.addEventListener('mousedown', function(e) {
-            e.preventDefault(); // Prevent text selection
+            e.preventDefault();
             window.addEventListener('mousemove', resize);
             window.addEventListener('mouseup', stopResize);
         });
@@ -382,10 +685,8 @@
             const leftPanelMinWidth = 200;
             const rightPanelMinWidth = 200;
 
-            // Calculate new width for the left panel
             let newLeftWidth = e.clientX - containerRect.left;
 
-            // Enforce minimum width constraints
             if (newLeftWidth < leftPanelMinWidth) {
                 newLeftWidth = leftPanelMinWidth;
             }
@@ -400,7 +701,6 @@
             window.removeEventListener('mousemove', resize);
             window.removeEventListener('mouseup', stopResize);
         }
-
     </script>
 </body>
 </html>
