@@ -234,6 +234,11 @@
                                 <button id="add-note" class="mt-3 w-full bg-green-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-green-600 transition shadow-md">
                                     Add Note & Clip
                                 </button>
+                                
+                                <!-- Stop Looping Button -->
+                                <button id="stop-looping" class="mt-2 w-full bg-red-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-red-600 transition shadow-md hidden">
+                                    ⏹️ Stop Looping <span id="looping-status" class="text-sm opacity-75"></span>
+                                </button>
                             </div>
                         </div>
 
@@ -292,6 +297,8 @@
         const endTimeDisplay = document.getElementById('end-time-display');
         const addNoteBtn = document.getElementById('add-note');
         const noteText = document.getElementById('note-text');
+        const stopLoopingBtn = document.getElementById('stop-looping');
+        const loopingStatus = document.getElementById('looping-status');
         const playerPlaceholder = document.getElementById('player-placeholder');
         const toast = document.getElementById('toast');
 
@@ -301,6 +308,7 @@
         setStartTimeBtn.addEventListener('click', () => setTime('start'));
         setEndTimeBtn.addEventListener('click', () => setTime('end'));
         addNoteBtn.addEventListener('click', handleAddNote);
+        stopLoopingBtn.addEventListener('click', stopLoop);
         
         // Add event listener for refresh all notes button
         const refreshAllNotesBtn = document.getElementById('refresh-all-notes');
@@ -356,6 +364,15 @@
         // Check authentication on load
         document.addEventListener('DOMContentLoaded', () => {
             console.log('📱 DOM loaded, checking authentication...');
+            
+            // Initialize UI elements
+            if (stopLoopingBtn) {
+                stopLoopingBtn.classList.add('hidden');
+            }
+            if (loopingStatus) {
+                loopingStatus.textContent = '';
+            }
+            
             checkAuth();
         });
 
@@ -936,6 +953,21 @@
             player.seekTo(startTime);
             player.playVideo();
 
+            // Show stop looping button
+            if (stopLoopingBtn) {
+                stopLoopingBtn.classList.remove('hidden');
+            }
+            
+            // Update looping status
+            if (loopingStatus) {
+                const note = notes[index];
+                if (note) {
+                    loopingStatus.textContent = `(${formatTime(startTime)} → ${formatTime(endTime)})`;
+                } else {
+                    loopingStatus.textContent = `(${formatTime(startTime)} → ${formatTime(endTime)})`;
+                }
+            }
+
             loopInterval = setInterval(() => {
                 if (player && typeof player.getCurrentTime === 'function') {
                     const currentTime = player.getCurrentTime();
@@ -952,6 +984,16 @@
                 loopInterval = null;
             }
             loopingNoteIndex = -1;
+            
+            // Hide stop looping button
+            if (stopLoopingBtn) {
+                stopLoopingBtn.classList.add('hidden');
+            }
+            
+            // Clear looping status
+            if (loopingStatus) {
+                loopingStatus.textContent = '';
+            }
         }
 
         async function handleDeleteNote(e) {
@@ -1006,6 +1048,16 @@
             tempEndTime = 0;
             startTimeDisplay.textContent = '00:00';
             endTimeDisplay.textContent = '00:00';
+            
+            // Hide stop looping button when resetting
+            if (stopLoopingBtn) {
+                stopLoopingBtn.classList.add('hidden');
+            }
+            
+            // Clear looping status when resetting
+            if (loopingStatus) {
+                loopingStatus.textContent = '';
+            }
         }
 
         function formatTime(totalSeconds) {
