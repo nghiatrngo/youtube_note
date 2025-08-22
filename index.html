@@ -1859,17 +1859,39 @@
                 return;
             }
             
-            // Debug: Check all notes for this ID
-            const allNotesWithId = allNotes.filter(n => n.id === noteId || n._id === noteId);
-            const notesWithId = notes.filter(n => n.id === noteId || n._id === noteId);
+            // Convert noteId to both string and number for comparison
+            const noteIdStr = String(noteId);
+            const noteIdNum = Number(noteId);
+            
+            console.log('🔍 Converting noteId for comparison:', {
+                original: noteId,
+                asString: noteIdStr,
+                asNumber: noteIdNum
+            });
+            
+            // Debug: Check all notes for this ID with proper type conversion
+            const allNotesWithId = allNotes.filter(n => 
+                String(n.id) === noteIdStr || String(n._id) === noteIdStr ||
+                Number(n.id) === noteIdNum || Number(n._id) === noteIdNum
+            );
+            const notesWithId = notes.filter(n => 
+                String(n.id) === noteIdStr || String(n._id) === noteIdStr ||
+                Number(n.id) === noteIdNum || Number(n._id) === noteIdNum
+            );
             
             console.log('🔍 Found in allNotes:', allNotesWithId);
             console.log('🔍 Found in notes:', notesWithId);
             
-            // Try to find the note in both arrays
-            let note = notes.find(n => n.id === noteId || n._id === noteId);
+            // Try to find the note in both arrays with proper type conversion
+            let note = notes.find(n => 
+                String(n.id) === noteIdStr || String(n._id) === noteIdStr ||
+                Number(n.id) === noteIdNum || Number(n._id) === noteIdNum
+            );
             if (!note && allNotes.length > 0) {
-                note = allNotes.find(n => n.id === noteId || n._id === noteId);
+                note = allNotes.find(n => 
+                    String(n.id) === noteIdStr || String(n._id) === noteIdStr ||
+                    Number(n.id) === noteIdNum || Number(n._id) === noteIdNum
+                );
                 if (note) {
                     console.log('✅ Found note in allNotes, adding to current notes');
                     notes.push(note);
