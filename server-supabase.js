@@ -7,9 +7,30 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
+// CORS Configuration
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN || 'https://nghiatrngo.github.io',
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
+
+// Additional CORS headers middleware
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', process.env.CORS_ORIGIN || 'https://nghiatrngo.github.io');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
 
 // Supabase client (will be set in environment variables)
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -317,22 +338,31 @@ app.get('/api/notes/video/:videoId', authenticateToken, async (req, res) => {
 // Update note
 app.put('/api/notes/:id', authenticateToken, async (req, res) => {
     try {
+        console.log('🔍 Update request for note ID:', req.params.id);
+        console.log('📝 Update data:', req.body);
+        console.log('👤 User ID:', req.user.userId);
+        
         const { id } = req.params;
         const userId = req.user.userId;
         const { text, startTime, endTime } = req.body;
 
         // Validate required fields
         if (!text || text.trim() === '') {
+            console.log('❌ Validation failed: Note text is required');
             return res.status(400).json({ message: 'Note text is required' });
         }
 
         if (typeof startTime !== 'number' || typeof endTime !== 'number') {
+            console.log('❌ Validation failed: Start time and end time must be numbers');
             return res.status(400).json({ message: 'Start time and end time must be numbers' });
         }
 
         if (startTime >= endTime) {
+            console.log('❌ Validation failed: End time must be greater than start time');
             return res.status(400).json({ message: 'End time must be greater than start time' });
         }
+
+        console.log('✅ Validation passed, updating note in Supabase...');
 
         // Update the note
         const { data: note, error } = await supabase
@@ -348,12 +378,16 @@ app.put('/api/notes/:id', authenticateToken, async (req, res) => {
             .single();
 
         if (error) {
+            console.error('❌ Supabase update error:', error);
             throw error;
         }
 
         if (!note) {
+            console.log('❌ Note not found for update');
             return res.status(404).json({ message: 'Note not found' });
         }
+
+        console.log('✅ Note updated successfully in Supabase:', note);
 
         const formattedNote = {
             id: note.id,
@@ -368,8 +402,8 @@ app.put('/api/notes/:id', authenticateToken, async (req, res) => {
 
         res.json({ message: 'Note updated successfully', note: formattedNote });
     } catch (error) {
-        console.error('Update note error:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        console.error('❌ Error updating note:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
@@ -404,6 +438,70 @@ app.get('/health', (req, res) => {
         uptime: process.uptime(),
         database: 'Supabase (No Expiration)'
     });
+});
+
+// Database health check endpoint for authenticated users
+app.get('/api/health', authenticateToken, async (req, res) => {
+    try {
+        console.log('🏥 Database health check for user:', req.user.userId);
+        
+        // Check Supabase connection
+        const { data: connectionTest, error: connectionError } = await supabase
+            .from('users')
+            .select('count')
+            .limit(1);
+        
+        if (connectionError) {
+            console.error('❌ Supabase connection error:', connectionError);
+            return res.status(500).json({ 
+                status: 'unhealthy',
+                message: 'Database connection failed',
+                error: connectionError.message 
+            });
+        }
+        
+        // Get user's notes for analysis
+        const { data: notes, error: notesError } = await supabase
+            .from('notes')
+            .select('id, video_id, text, created_at')
+            .eq('user_id', req.user.userId);
+        
+        if (notesError) {
+            console.error('❌ Error fetching notes for health check:', notesError);
+            return res.status(500).json({ 
+                status: 'unhealthy',
+                message: 'Failed to fetch notes for analysis',
+                error: notesError.message 
+            });
+        }
+        
+        // Analyze note consistency
+        const idAnalysis = {
+            totalNotes: notes ? notes.length : 0,
+            notesWithId: notes ? notes.filter(n => n.id).length : 0,
+            notesWithValidId: notes ? notes.filter(n => n.id && Number.isInteger(n.id)).length : 0,
+            notesWithText: notes ? notes.filter(n => n.text && n.text.trim()).length : 0,
+            notesWithVideoId: notes ? notes.filter(n => n.video_id && n.video_id.trim()).length : 0,
+            databaseStatus: 'connected'
+        };
+        
+        console.log('📊 Database health analysis:', idAnalysis);
+        
+        res.json({ 
+            status: 'healthy',
+            message: 'Database health check completed',
+            analysis: idAnalysis,
+            database: 'Supabase (No Expiration)',
+            connection: 'active'
+        });
+    } catch (error) {
+        console.error('❌ Health check failed:', error);
+        res.status(500).json({ 
+            status: 'unhealthy',
+            message: 'Health check failed',
+            error: error.message 
+        });
+    }
 });
 
 // Start server
