@@ -822,9 +822,13 @@
                         } else {
                             // SECURITY: Clear invalid token
                             localStorage.removeItem('cloudToken');
+                            currentUser = null;
+                            resetPageToInitialState();
                             showAuthModal();
                         }
                     } else {
+                        currentUser = null;
+                        resetPageToInitialState();
                         showAuthModal();
                     }
                 } else {
@@ -835,6 +839,8 @@
                         hideAuthModal();
                         loadUserNotes();
                     } else {
+                        currentUser = null;
+                        resetPageToInitialState();
                         showAuthModal();
                     }
                 }
@@ -848,6 +854,7 @@
                     localStorage.removeItem('currentUser');
                 }
                 currentUser = null;
+                resetPageToInitialState();
                 // Fallback to showing auth modal
                 showAuthModal();
             }
@@ -869,15 +876,28 @@
         function hideAuthModal() {
             try {
                 if (authModal) authModal.classList.add('hidden');
-                if (userInfo) userInfo.classList.remove('hidden');
-                // Hide login button when user is logged in
-                if (document.getElementById('login-btn')) {
-                    document.getElementById('login-btn').classList.add('hidden');
+                
+                // Check if user is authenticated to determine what to show
+                if (currentUser) {
+                    // User is logged in - show user info and hide login button
+                    if (userInfo) userInfo.classList.remove('hidden');
+                    if (document.getElementById('login-btn')) {
+                        document.getElementById('login-btn').classList.add('hidden');
+                    }
+                    if (usernameDisplay) {
+                        usernameDisplay.textContent = currentUser.username;
+                    }
+                    updateUserProfile();
+                } else {
+                    // User is not authenticated - hide user info and show login button
+                    if (userInfo) userInfo.classList.add('hidden');
+                    if (document.getElementById('login-btn')) {
+                        document.getElementById('login-btn').classList.remove('hidden');
+                    }
+                    if (usernameDisplay) {
+                        usernameDisplay.textContent = '';
+                    }
                 }
-                if (usernameDisplay && currentUser) {
-                    usernameDisplay.textContent = currentUser.username;
-                }
-                updateUserProfile();
             } catch (error) {
                 console.error('❌ Error hiding auth modal:', error);
             }
@@ -1089,26 +1109,16 @@
                 localStorage.removeItem('currentUser');
             }
             
-            // SECURITY: Clear all user data and state
-            currentUser = null;
-            notes = [];
-            allNotes = [];
-            
             // Clear saved page state for security
             localStorage.removeItem('youtubeNoteClipper_state');
             
-            // Clear UI displays
-            renderCurrentVideoNotes();
-            renderAllNotesSidebar();
-            updateUserProfile();
+            // Reset page to initial state
+            resetPageToInitialState();
             
-            // Show login button and auth modal after logout
-            if (document.getElementById('login-btn')) {
-                document.getElementById('login-btn').classList.remove('hidden');
-            }
+            // Hide auth modal and show login button
+            hideAuthModal();
             
-            showAuthModal();
-            showToast('Logged out successfully', 'info');
+            showToast('Logged out successfully. Page reset to initial state.', 'info');
         }
 
         // Core utility functions
@@ -2605,6 +2615,71 @@
             }
         }
         
+        // Reset page to initial state
+        function resetPageToInitialState() {
+            console.log('🔄 Resetting page to initial state...');
+            
+            // Clear all video-related state
+            currentVideoId = null;
+            currentVideoTitle = null;
+            tempStartTime = 0;
+            tempEndTime = 0;
+            
+            // Clear all notes
+            notes = [];
+            allNotes = [];
+            
+            // Reset video player to initial state
+            if (playerPlaceholder) {
+                playerPlaceholder.style.display = 'block';
+            }
+            
+            // Hide video controls toolbar
+            if (videoControlsToolbar) {
+                videoControlsToolbar.classList.add('hidden');
+            }
+            
+            // Clear video URL input
+            const urlInput = document.getElementById('url-input');
+            if (urlInput) {
+                urlInput.value = '';
+            }
+            
+            // Clear note input fields
+            if (noteText) {
+                noteText.value = '';
+            }
+            if (toolbarStartTime) {
+                toolbarStartTime.textContent = '00:00';
+            }
+            if (toolbarEndTime) {
+                toolbarEndTime.textContent = '00:00';
+            }
+            
+            // Hide any active loops
+            if (stopLoopingBtn) {
+                stopLoopingBtn.classList.add('hidden');
+            }
+            if (loopingStatus) {
+                loopingStatus.textContent = '';
+            }
+            
+            // Reset sidebar to default state
+            if (mainContent) {
+                mainContent.classList.remove('sidebar-collapsed');
+            }
+            if (sidebar) {
+                sidebar.classList.remove('collapsed');
+            }
+            
+            // Clear UI displays
+            renderCurrentVideoNotes();
+            renderAllNotesSidebar();
+            updateUserProfile();
+            
+            console.log('✅ Page reset to initial state');
+        }
+
         // State persistence functions
         function savePageState() {
             // SECURITY CHECK: Only save state if user is authenticated
