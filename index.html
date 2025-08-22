@@ -174,11 +174,51 @@
             <!-- Main Content -->
             <main class="flex-1 bg-white p-4 lg:p-6 w-full">
                 <!-- URL Input Section -->
-                <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                <div id="url-input-section" class="flex flex-col sm:flex-row gap-4 mb-6">
                     <input type="text" id="youtube-url" class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Enter YouTube URL (e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ)">
                     <button id="load-video" class="bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         Load Video
                     </button>
+                </div>
+                
+                <!-- Video Toolbar (hidden by default) -->
+                <div id="video-toolbar" class="hidden bg-white border border-gray-200 rounded-lg p-3 mb-4 shadow-sm">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <!-- Load Video Button -->
+                        <button id="toolbar-load-video" class="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                            🔄 Load New Video
+                        </button>
+                        
+                        <!-- Divider -->
+                        <div class="w-px h-8 bg-gray-300"></div>
+                        
+                        <!-- Time Controls -->
+                        <button id="toolbar-set-start" class="bg-cyan-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-cyan-600 transition">
+                            ⏱️ Set Start
+                        </button>
+                        <button id="toolbar-set-end" class="bg-teal-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-teal-600 transition">
+                            ⏱️ Set End
+                        </button>
+                        
+                        <!-- Time Display -->
+                        <div class="flex items-center space-x-4 text-sm">
+                            <span class="font-medium text-gray-700">Start: <span id="toolbar-start-time" class="font-mono bg-gray-100 px-2 py-1 rounded">00:00</span></span>
+                            <span class="font-medium text-gray-700">End: <span id="toolbar-end-time" class="font-mono bg-gray-100 px-2 py-1 rounded">00:00</span></span>
+                        </div>
+                        
+                        <!-- Divider -->
+                        <div class="w-px h-8 bg-gray-300"></div>
+                        
+                        <!-- Note Actions -->
+                        <button id="toolbar-add-note" class="bg-green-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-600 transition">
+                            📝 Add Note
+                        </button>
+                        
+                        <!-- Stop Looping Button (hidden by default) -->
+                        <button id="toolbar-stop-looping" class="hidden bg-red-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-600 transition">
+                            ⏹️ Stop Looping <span id="toolbar-looping-status" class="text-sm opacity-75"></span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Video and Notes Section -->
@@ -197,28 +237,9 @@
                         <!-- Note Taking Area -->
                         <div id="note-taker" class="bg-gray-50 p-4 rounded-lg">
                             <h3 class="text-xl font-semibold mb-3">Create a Clip</h3>
-                            <div class="grid grid-cols-2 gap-4 mb-3">
-                                <button id="set-start-time" class="bg-cyan-500 text-white font-semibold py-2 rounded-lg hover:bg-cyan-600 transition">Set Start</button>
-                                <button id="set-end-time" class="bg-teal-500 text-white font-semibold py-2 rounded-lg hover:bg-teal-600 transition">Set End</button>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4 mb-3 text-center">
-                                <div>
-                                    <label class="text-sm font-medium text-gray-600">Start Time</label>
-                                    <p id="start-time-display" class="font-mono text-lg p-2 bg-white border rounded-md">00:00</p>
-                                </div>
-                                <div>
-                                    <label class="text-sm font-medium text-gray-600">End Time</label>
-                                    <p id="end-time-display" class="font-mono text-lg p-2 bg-white border rounded-md">00:00</p>
-                                </div>
-                            </div>
                             <textarea id="note-text" class="w-full p-3 border border-gray-300 rounded-lg h-24 focus:ring-2 focus:ring-blue-500" placeholder="Write your note for this clip..."></textarea>
                             <button id="add-note" class="mt-3 w-full bg-green-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-green-600 transition shadow-md">
                                 Add Note & Clip
-                            </button>
-                            
-                            <!-- Stop Looping Button -->
-                            <button id="stop-looping" class="mt-2 w-full bg-red-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-red-600 transition shadow-md hidden">
-                                ⏹️ Stop Looping <span id="looping-status" class="text-sm opacity-75"></span>
                             </button>
                         </div>
                     </div>
@@ -266,6 +287,8 @@
         let setStartTimeBtn, setEndTimeBtn, startTimeDisplay, endTimeDisplay;
         let addNoteBtn, noteText, stopLoopingBtn, loopingStatus, playerPlaceholder, toast;
         let sidebarToggle, sidebar, mainContent;
+        let urlInputSection, videoToolbar, toolbarLoadVideo, toolbarSetStart, toolbarSetEnd;
+        let toolbarStartTime, toolbarEndTime, toolbarAddNote, toolbarStopLooping, toolbarLoopingStatus;
 
         // Check authentication on load
         document.addEventListener('DOMContentLoaded', () => {
@@ -297,6 +320,18 @@
             sidebar = document.getElementById('sidebar');
             mainContent = document.querySelector('.flex-1');
             
+            // Toolbar elements
+            urlInputSection = document.getElementById('url-input-section');
+            videoToolbar = document.getElementById('video-toolbar');
+            toolbarLoadVideo = document.getElementById('toolbar-load-video');
+            toolbarSetStart = document.getElementById('toolbar-set-start');
+            toolbarSetEnd = document.getElementById('toolbar-set-end');
+            toolbarStartTime = document.getElementById('toolbar-start-time');
+            toolbarEndTime = document.getElementById('toolbar-end-time');
+            toolbarAddNote = document.getElementById('toolbar-add-note');
+            toolbarStopLooping = document.getElementById('toolbar-stop-looping');
+            toolbarLoopingStatus = document.getElementById('toolbar-looping-status');
+            
             // Add event listeners
             if (loadVideoBtn) loadVideoBtn.addEventListener('click', handleLoadVideo);
             if (urlInput) urlInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleLoadVideo());
@@ -324,6 +359,13 @@
             
             // Sidebar toggle
             if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);
+            
+            // Toolbar event listeners
+            if (toolbarLoadVideo) toolbarLoadVideo.addEventListener('click', showUrlInput);
+            if (toolbarSetStart) toolbarSetStart.addEventListener('click', () => setTime('start'));
+            if (toolbarSetEnd) toolbarSetEnd.addEventListener('click', () => setTime('end'));
+            if (toolbarAddNote) toolbarAddNote.addEventListener('click', handleAddNote);
+            if (toolbarStopLooping) toolbarStopLooping.addEventListener('click', stopLoop);
             
             // Initialize UI elements
             if (stopLoopingBtn) {
@@ -400,6 +442,26 @@
                         }
                     }
                 }
+            }
+        }
+        
+        // Show URL input section
+        function showUrlInput() {
+            if (urlInputSection && videoToolbar) {
+                urlInputSection.classList.remove('hidden');
+                videoToolbar.classList.add('hidden');
+                // Clear URL input
+                if (urlInput) urlInput.value = '';
+                // Focus on URL input
+                if (urlInput) urlInput.focus();
+            }
+        }
+        
+        // Hide URL input and show toolbar
+        function showToolbar() {
+            if (urlInputSection && videoToolbar) {
+                urlInputSection.classList.add('hidden');
+                videoToolbar.classList.remove('hidden');
             }
         }
 
@@ -606,6 +668,9 @@
                 }
             
             showToast(`Video loaded: ${currentVideoTitle}`, 'success');
+            
+            // Show toolbar after video loads
+            showToolbar();
         }
 
         // Enhanced video title fetching
@@ -984,14 +1049,24 @@
             player.seekTo(startTime);
             player.playVideo();
 
-            // Show stop looping button
+            // Show stop looping button (old)
             if (stopLoopingBtn) {
                 stopLoopingBtn.classList.remove('hidden');
             }
             
-            // Update looping status
+            // Update looping status (old)
             if (loopingStatus) {
                 loopingStatus.textContent = `(${formatTime(startTime)} → ${formatTime(endTime)})`;
+            }
+            
+            // Show toolbar stop looping button
+            if (toolbarStopLooping) {
+                toolbarStopLooping.classList.remove('hidden');
+            }
+            
+            // Update toolbar looping status
+            if (toolbarLoopingStatus) {
+                toolbarLoopingStatus.textContent = `(${formatTime(startTime)} → ${formatTime(endTime)})`;
             }
 
             loopInterval = setInterval(() => {
@@ -1011,14 +1086,24 @@
             }
             loopingNoteIndex = -1;
             
-            // Hide stop looping button
+            // Hide stop looping button (old)
             if (stopLoopingBtn) {
                 stopLoopingBtn.classList.add('hidden');
             }
             
-            // Clear looping status
+            // Clear looping status (old)
             if (loopingStatus) {
                 loopingStatus.textContent = '';
+            }
+            
+            // Hide toolbar stop looping button
+            if (toolbarStopLooping) {
+                toolbarStopLooping.classList.add('hidden');
+            }
+            
+            // Clear toolbar looping status
+            if (toolbarLoopingStatus) {
+                toolbarLoopingStatus.textContent = '';
             }
         }
 
@@ -1028,10 +1113,12 @@
                 const currentTime = Math.floor(player.getCurrentTime());
                 if (type === 'start') {
                     tempStartTime = currentTime;
-                    startTimeDisplay.textContent = formatTime(currentTime);
+                    if (startTimeDisplay) startTimeDisplay.textContent = formatTime(currentTime);
+                    if (toolbarStartTime) toolbarStartTime.textContent = formatTime(currentTime);
                 } else {
                     tempEndTime = currentTime;
-                    endTimeDisplay.textContent = formatTime(currentTime);
+                    if (endTimeDisplay) endTimeDisplay.textContent = formatTime(currentTime);
+                    if (toolbarEndTime) toolbarEndTime.textContent = formatTime(currentTime);
                 }
             } else {
                 showToast('Player not ready. Please wait for video to load.', 'warning');
@@ -1043,8 +1130,10 @@
             noteText.value = '';
             tempStartTime = 0;
             tempEndTime = 0;
-            startTimeDisplay.textContent = '00:00';
-            endTimeDisplay.textContent = '00:00';
+            if (startTimeDisplay) startTimeDisplay.textContent = '00:00';
+            if (endTimeDisplay) endTimeDisplay.textContent = '00:00';
+            if (toolbarStartTime) toolbarStartTime.textContent = '00:00';
+            if (toolbarEndTime) toolbarEndTime.textContent = '00:00';
             
             // Hide stop looping button when resetting
             if (stopLoopingBtn) {
@@ -1054,6 +1143,16 @@
             // Clear looping status when resetting
             if (loopingStatus) {
                 loopingStatus.textContent = '';
+            }
+            
+            // Hide toolbar stop looping button when resetting
+            if (toolbarStopLooping) {
+                toolbarStopLooping.classList.add('hidden');
+            }
+            
+            // Clear toolbar looping status when resetting
+            if (toolbarLoopingStatus) {
+                toolbarLoopingStatus.textContent = '';
             }
         }
 
