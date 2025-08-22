@@ -1147,10 +1147,12 @@
                 sidebarHTML += `
                     <div class="bg-gray-50 p-3 rounded-lg border">
                         <h4 class="font-semibold text-sm text-gray-800 mb-2">${escapeHTML(videoTitle)}</h4>
-                        <p class="text-xs text-gray-600 mb-2">${noteCount} note${noteCount > 1 ? 's' : ''}</p>
-                        <button onclick="loadVideoById('${videoId}')" class="w-full bg-blue-500 text-white text-xs py-1 px-2 rounded hover:bg-blue-600 transition">
-                            Load Video
-                        </button>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-gray-600">${noteCount} note${noteCount > 1 ? 's' : ''}</span>
+                            <button onclick="loadVideoById('${videoId}')" class="bg-blue-500 text-white text-xs py-1 px-2 rounded hover:bg-blue-600 transition">
+                                View Note
+                            </button>
+                        </div>
                     </div>
                 `;
             });
@@ -1183,8 +1185,12 @@
             // Load notes for this video
             await loadVideoNotes(videoId);
             
-            // Reset note taker
-            resetNoteTaker();
+            // Reset note input only (don't hide video controls)
+            if (noteText) noteText.value = '';
+            if (toolbarStartTime) toolbarStartTime.textContent = '00:00';
+            if (toolbarEndTime) toolbarEndTime.textContent = '00:00';
+            tempStartTime = 0;
+            tempEndTime = 0;
             
             // Hide placeholder and show player
             if (playerPlaceholder) {
@@ -1214,8 +1220,13 @@
                 }
             }
             
-            // Show toolbar
-            showToolbar();
+            // Show video controls toolbar
+            if (videoControlsToolbar) {
+                videoControlsToolbar.classList.remove('hidden');
+            }
+            
+            // Save current page state
+            savePageState();
             
             showToast(`Video loaded: ${currentVideoTitle}`, 'success');
         }
