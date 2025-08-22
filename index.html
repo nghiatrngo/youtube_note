@@ -65,29 +65,59 @@
     <!-- Header -->
     <header class="bg-white shadow-sm border-b px-4 py-3">
         <div class="flex justify-between items-center">
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-3">
                 <!-- Sidebar Toggle Button -->
                 <button id="sidebar-toggle" class="text-gray-600 hover:text-gray-800 p-2 rounded-lg hover:bg-gray-100 transition">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                     </svg>
                 </button>
-                <h1 class="text-xl font-bold text-gray-800">YouTube Note Clipper</h1>
+                <h1 class="text-lg font-bold text-gray-800">YouTube Note Clipper</h1>
                 
                 <!-- Load New Video Button -->
-                <button id="toolbar-load-video" class="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm">
-                    🔄 Load New Video
+                <button id="toolbar-load-video" class="bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700 transition">
+                    Load Video
                 </button>
             </div>
             
-            <!-- User Info (hidden by default) -->
-            <div id="user-info" class="hidden flex items-center space-x-4">
-                <span class="text-gray-600">Welcome, <span id="username-display">Username</span></span>
-                <button id="logout-btn" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition">Logout</button>
-            </div>
+            <!-- Video Controls Toolbar -->
+                            <div id="video-controls-toolbar" class="flex items-center space-x-2 hidden">
+                    <button id="toolbar-play-pause" class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs transition">
+                        ▶ Play
+                    </button>
+                    <button id="toolbar-frame-back" class="bg-gray-500 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs transition">
+                        -1 Frame
+                    </button>
+                    <button id="toolbar-frame-forward" class="bg-gray-500 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs transition">
+                        +1 Frame
+                    </button>
+                    <div class="w-px h-6 bg-gray-300 mx-1"></div>
+                    <button id="toolbar-set-start" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs transition">
+                        Set Start
+                    </button>
+                    <button id="toolbar-set-end" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs transition">
+                        Set End
+                    </button>
+                    <div class="flex items-center space-x-2 text-xs text-gray-600">
+                        <span>Start: <span id="toolbar-start-time" class="font-mono">00:00</span></span>
+                        <span>End: <span id="toolbar-end-time" class="font-mono">00:00</span></span>
+                    </div>
+                    <div class="w-px h-6 bg-gray-300 mx-1"></div>
+                    <button id="toolbar-stop-looping" class="hidden bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs transition">
+                        Stop Loop
+                    </button>
+                </div>
             
-            <!-- Login Button (shown by default) -->
-            <button id="login-btn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Login</button>
+            <div class="flex items-center space-x-3">
+                <!-- User Info (hidden by default) -->
+                <div id="user-info" class="hidden flex items-center space-x-3">
+                    <span class="text-gray-600 text-sm">Welcome, <span id="username-display">Username</span></span>
+                    <button id="logout-btn" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition">Logout</button>
+                </div>
+                
+                <!-- Login Button (shown by default) -->
+                <button id="login-btn" class="bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700 transition">Login</button>
+            </div>
         </div>
     </header>
 
@@ -186,48 +216,7 @@
                     </button>
                 </div>
                 
-                <!-- Video Toolbar (hidden by default) -->
-                <div id="video-toolbar" class="hidden bg-white border border-gray-200 rounded-lg p-3 mb-4 shadow-sm">
-                    <div class="flex flex-wrap items-center gap-3">
-                        <!-- Video Playback Controls -->
-                        <button id="toolbar-play-pause" class="bg-green-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-600 transition">
-                            ▶️ Play
-                        </button>
-                        <button id="toolbar-frame-back" class="bg-gray-500 text-white font-semibold px-3 py-2 rounded-lg hover:bg-gray-600 transition">
-                            ⏪ -1 Frame
-                        </button>
-                        <button id="toolbar-frame-forward" class="bg-gray-500 text-white font-semibold px-3 py-2 rounded-lg hover:bg-gray-600 transition">
-                            ⏩ +1 Frame
-                        </button>
-                        
-                        <!-- Divider -->
-                        <div class="w-px h-8 bg-gray-300"></div>
-                        
-                        <!-- Time Controls -->
-                        <button id="toolbar-set-start" class="bg-cyan-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-cyan-600 transition">
-                            ⏱️ Set Start
-                        </button>
-                        <button id="toolbar-set-end" class="bg-teal-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-teal-600 transition">
-                            ⏱️ Set End
-                        </button>
-                        
-                        <!-- Time Display -->
-                        <div class="flex items-center space-x-4 text-sm">
-                            <span class="font-medium text-gray-700">Start: <span id="toolbar-start-time" class="font-mono bg-gray-100 px-2 py-1 rounded">00:00</span></span>
-                            <span class="font-medium text-gray-700">End: <span id="toolbar-end-time" class="font-mono bg-gray-100 px-2 py-1 rounded">00:00</span></span>
-                        </div>
-                        
-                        <!-- Divider -->
-                        <div class="w-px h-8 bg-gray-300"></div>
-                        
 
-                        
-                        <!-- Stop Looping Button (hidden by default) -->
-                        <button id="toolbar-stop-looping" class="hidden bg-red-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-600 transition">
-                            ⏹️ Stop Looping <span id="toolbar-looping-status" class="text-sm opacity-75"></span>
-                        </button>
-                    </div>
-                </div>
 
                 <!-- Video and Notes Section -->
                 <div class="grid grid-cols-1 xl:grid-cols-4 gap-4 lg:gap-6">
@@ -328,7 +317,7 @@
             
             // Toolbar elements
             urlInputSection = document.getElementById('url-input-section');
-            videoToolbar = document.getElementById('video-toolbar');
+            videoControlsToolbar = document.getElementById('video-controls-toolbar');
             toolbarLoadVideo = document.getElementById('toolbar-load-video');
             toolbarSetStart = document.getElementById('toolbar-set-start');
             toolbarSetEnd = document.getElementById('toolbar-set-end');
@@ -505,9 +494,9 @@
         
         // Hide URL input and show toolbar
         function showToolbar() {
-            if (urlInputSection && videoToolbar) {
+            if (urlInputSection && videoControlsToolbar) {
                 urlInputSection.classList.add('hidden');
-                videoToolbar.classList.remove('hidden');
+                videoControlsToolbar.classList.remove('hidden');
             }
         }
 
@@ -1580,6 +1569,11 @@
             // Clear toolbar looping status when resetting
             if (toolbarLoopingStatus) {
                 toolbarLoopingStatus.textContent = '';
+            }
+            
+            // Hide header toolbar when resetting
+            if (videoControlsToolbar) {
+                videoControlsToolbar.classList.add('hidden');
             }
         }
 
