@@ -1334,11 +1334,12 @@
             
             let notesHTML = '';
             notes.forEach((note, index) => {
+                console.log(`Rendering note ${index}:`, note);
                 notesHTML += `
-                    <div class="bg-gray-50 p-3 rounded-lg border" data-note-id="${note.id}">
+                    <div class="bg-gray-50 p-3 rounded-lg border" data-note-id="${note.id || note._id}">
                         <div class="flex justify-between items-start mb-2">
-                            <span class="font-mono text-sm text-blue-600 note-time-display" data-note-id="${note.id}">${formatTime(note.startTime)} → ${formatTime(note.endTime)}</span>
-                            <button onclick="deleteNote('${note.id}')" class="text-red-500 hover:text-red-700 text-sm">×</button>
+                            <span class="font-mono text-sm text-blue-600 note-time-display" data-note-id="${note.id || note._id}">${formatTime(note.startTime)} → ${formatTime(note.endTime)}</span>
+                            <button onclick="deleteNote('${note.id || note._id}')" class="text-red-500 hover:text-red-700 text-sm">×</button>
                         </div>
                         <div class="note-content">
                             <p class="text-gray-700 text-sm note-text" data-note-id="${note.id}">${escapeHTML(note.text)}</p>
@@ -1799,6 +1800,9 @@
         
         // Delete note function
         async function deleteNote(noteId) {
+            console.log('🔍 deleteNote called with noteId:', noteId);
+            console.log('Current user:', currentUser);
+            
             if (!currentUser) {
                 showToast("Please log in to delete notes.", 'error');
                 return;
