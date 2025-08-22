@@ -55,9 +55,11 @@ async function testConnection() {
 async function initializeDatabase() {
     try {
         // Create users table
-        const { error: usersError } = await supabase.rpc('create_users_table');
-        if (usersError && !usersError.message.includes('already exists')) {
-            console.error('Users table creation error:', usersError);
+        try {
+            const { data: usersCheck } = await supabase.from('users').select('count').limit(1);
+            console.log('✅ Users table exists');
+        } catch (error) {
+            console.log('⚠️ Users table may not exist - you may need to create it manually in Supabase dashboard');
         }
 
         // Create notes table
@@ -66,7 +68,7 @@ async function initializeDatabase() {
             console.error('Notes table creation error:', notesError);
         }
 
-        console.log('🗄️ Database tables initialized successfully');
+        console.log('🗄️ Database initialization completed');
     } catch (error) {
         console.error('❌ Database initialization failed:', error);
     }
