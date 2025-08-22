@@ -59,6 +59,110 @@
         .main-content {
             transition: all 0.3s ease;
         }
+        
+        /* Theme CSS Variables */
+        :root {
+            --bg-primary: #f3f4f6;
+            --bg-secondary: #ffffff;
+            --bg-sidebar: #ffffff;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+        }
+        
+        /* Light Theme (Default) */
+        [data-theme="light"] {
+            --bg-primary: #f3f4f6;
+            --bg-secondary: #ffffff;
+            --bg-sidebar: #ffffff;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+        }
+        
+        /* Dark Theme */
+        [data-theme="dark"] {
+            --bg-primary: #111827;
+            --bg-secondary: #1f2937;
+            --bg-sidebar: #374151;
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --border-color: #4b5563;
+            --accent-color: #60a5fa;
+            --accent-hover: #3b82f6;
+        }
+        
+        /* Blue Theme */
+        [data-theme="blue"] {
+            --bg-primary: #eff6ff;
+            --bg-secondary: #ffffff;
+            --bg-sidebar: #dbeafe;
+            --text-primary: #1e40af;
+            --text-secondary: #3b82f6;
+            --border-color: #93c5fd;
+            --accent-color: #2563eb;
+            --accent-hover: #1d4ed8;
+        }
+        
+        /* Green Theme */
+        [data-theme="green"] {
+            --bg-primary: #f0fdf4;
+            --bg-secondary: #ffffff;
+            --bg-sidebar: #dcfce7;
+            --text-primary: #166534;
+            --text-secondary: #16a34a;
+            --border-color: #86efac;
+            --accent-color: #16a34a;
+            --accent-hover: #15803d;
+        }
+        
+        /* Purple Theme */
+        [data-theme="purple"] {
+            --bg-primary: #faf5ff;
+            --bg-secondary: #ffffff;
+            --bg-sidebar: #f3e8ff;
+            --text-primary: #7c3aed;
+            --text-secondary: #a855f7;
+            --border-color: #c4b5fd;
+            --accent-color: #9333ea;
+            --accent-hover: #7c3aed;
+        }
+        
+        /* Apply theme variables */
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        
+        header {
+            background-color: var(--bg-secondary);
+            border-color: var(--border-color);
+        }
+        
+        #sidebar {
+            background-color: var(--bg-sidebar);
+            border-color: var(--border-color);
+        }
+        
+        .bg-white {
+            background-color: var(--bg-secondary);
+        }
+        
+        .text-gray-800 {
+            color: var(--text-primary);
+        }
+        
+        .text-gray-600 {
+            color: var(--text-secondary);
+        }
+        
+        .border-gray-200 {
+            border-color: var(--border-color);
+        }
     </style>
 </head>
 <body class="bg-gray-100 h-screen">
@@ -117,6 +221,36 @@
                     </div>
             
             <div class="flex items-center space-x-3">
+                <!-- Theme Selector -->
+                <div class="relative">
+                    <button id="theme-selector" class="bg-gray-600 text-white px-3 py-1.5 rounded text-sm hover:bg-gray-700 transition flex items-center space-x-2">
+                        <span>🎨</span>
+                        <span>Theme</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div id="theme-dropdown" class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 hidden">
+                        <div class="py-2">
+                            <button class="theme-option w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition" data-theme="light">
+                                ☀️ Light
+                            </button>
+                            <button class="theme-option w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition" data-theme="dark">
+                                🌙 Dark
+                            </button>
+                            <button class="theme-option w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition" data-theme="blue">
+                                🔵 Blue
+                            </button>
+                            <button class="theme-option w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition" data-theme="green">
+                                🟢 Green
+                            </button>
+                            <button class="theme-option w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition" data-theme="purple">
+                                🟣 Purple
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- User Info (hidden by default) -->
                 <div id="user-info" class="hidden flex items-center space-x-3">
                     <span class="text-gray-600 text-sm">Welcome, <span id="username-display">Username</span></span>
@@ -290,6 +424,7 @@
         let videoToolbar, videoControlsToolbar, toolbarLoadVideo, toolbarSetStart, toolbarSetEnd;
         let toolbarStartTime, toolbarEndTime, toolbarStopLooping, toolbarLoopingStatus;
         let toolbarPlayPause, toolbarFrameBack, toolbarFrameForward, toolbarSpeed50, toolbarSpeed150;
+        let themeSelector, themeDropdown;
 
         // Check authentication on load
         document.addEventListener('DOMContentLoaded', () => {
@@ -317,6 +452,10 @@
                 sidebarToggle = document.getElementById('sidebar-toggle');
                 sidebar = document.getElementById('sidebar');
                 mainContent = document.querySelector('.flex-1');
+                
+                // Theme selector elements
+                themeSelector = document.getElementById('theme-selector');
+                themeDropdown = document.getElementById('theme-dropdown');
             
                 // Toolbar elements
                 videoControlsToolbar = document.getElementById('video-controls-toolbar');
@@ -364,10 +503,26 @@
                 if (toolbarPlayPause) toolbarPlayPause.addEventListener('click', togglePlayPause);
                 if (toolbarFrameBack) toolbarFrameBack.addEventListener('click', () => seekFrame(-1));
                 if (toolbarFrameForward) toolbarFrameForward.addEventListener('click', () => seekFrame(1));
-                if (toolbarSpeed50) toolbarSpeed50.addEventListener('click', () => setPlaybackSpeed(0.5));
-                if (toolbarSpeed50) toolbarSpeed50.addEventListener('dblclick', () => setPlaybackSpeed(1.0));
-                if (toolbarSpeed150) toolbarSpeed150.addEventListener('click', () => setPlaybackSpeed(1.5));
-                if (toolbarSpeed150) toolbarSpeed150.addEventListener('dblclick', () => setPlaybackSpeed(1.0));
+                if (toolbarSpeed50) {
+                    let clickTimeout;
+                    toolbarSpeed50.addEventListener('click', () => {
+                        clickTimeout = setTimeout(() => setPlaybackSpeed(0.5), 200);
+                    });
+                    toolbarSpeed50.addEventListener('dblclick', () => {
+                        clearTimeout(clickTimeout);
+                        setPlaybackSpeed(1.0);
+                    });
+                }
+                if (toolbarSpeed150) {
+                    let clickTimeout;
+                    toolbarSpeed150.addEventListener('click', () => {
+                        clickTimeout = setTimeout(() => setPlaybackSpeed(1.5), 200);
+                    });
+                    toolbarSpeed150.addEventListener('dblclick', () => {
+                        clearTimeout(clickTimeout);
+                        setPlaybackSpeed(1.0);
+                    });
+                }
                 
                 // Note taking event listeners
                 if (addNoteBtn) {
@@ -376,6 +531,27 @@
                 } else {
                     console.log('❌ Add note button not found');
                 }
+                
+                // Theme selector event listeners
+                if (themeSelector) {
+                    themeSelector.addEventListener('click', toggleThemeDropdown);
+                }
+                
+                // Theme option event listeners
+                document.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('theme-option')) {
+                        const theme = e.target.getAttribute('data-theme');
+                        setTheme(theme);
+                        hideThemeDropdown();
+                    }
+                });
+                
+                // Close theme dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!themeSelector?.contains(e.target) && !themeDropdown?.contains(e.target)) {
+                        hideThemeDropdown();
+                    }
+                });
                 
 
                 
@@ -398,6 +574,10 @@
             }
             
             console.log('✅ DOM elements initialized, checking authentication...');
+            
+            // Load saved theme
+            loadSavedTheme();
+            
             checkAuth();
             
             // Restore previous page state after authentication
@@ -517,6 +697,49 @@
                 
                 // Clean up temporary input
                 document.body.removeChild(tempInput);
+            }
+        }
+        
+        // Theme functions
+        function toggleThemeDropdown() {
+            if (themeDropdown) {
+                themeDropdown.classList.toggle('hidden');
+            }
+        }
+        
+        function hideThemeDropdown() {
+            if (themeDropdown) {
+                themeDropdown.classList.add('hidden');
+            }
+        }
+        
+        function setTheme(theme) {
+            // Remove all theme classes
+            document.documentElement.removeAttribute('data-theme');
+            document.body.removeAttribute('data-theme');
+            
+            // Set new theme
+            document.documentElement.setAttribute('data-theme', theme);
+            document.body.setAttribute('data-theme', theme);
+            
+            // Save theme preference
+            localStorage.setItem('selectedTheme', theme);
+            
+            // Show feedback
+            const themeNames = {
+                'light': 'Light',
+                'dark': 'Dark',
+                'blue': 'Blue',
+                'green': 'Green',
+                'purple': 'Purple'
+            };
+            showToast(`Theme changed to ${themeNames[theme]}`, 'success');
+        }
+        
+        function loadSavedTheme() {
+            const savedTheme = localStorage.getItem('selectedTheme');
+            if (savedTheme) {
+                setTheme(savedTheme);
             }
         }
         
@@ -1660,7 +1883,8 @@
                 notes: notes,
                 allNotes: allNotes,
                 currentUser: currentUser,
-                videoControlsVisible: videoControlsToolbar ? !videoControlsToolbar.classList.contains('hidden') : false
+                videoControlsVisible: videoControlsToolbar ? !videoControlsToolbar.classList.contains('hidden') : false,
+                currentTheme: localStorage.getItem('selectedTheme') || 'light'
             };
             localStorage.setItem('youtubeNoteClipper_state', JSON.stringify(state));
         }
@@ -1728,6 +1952,11 @@
                         renderAllNotesSidebar();
                         
                         showToast('Previous session restored!', 'success');
+                    }
+                    
+                    // Restore theme if available
+                    if (state.currentTheme) {
+                        setTheme(state.currentTheme);
                     }
                 }
             } catch (error) {
