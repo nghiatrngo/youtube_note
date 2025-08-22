@@ -2107,17 +2107,21 @@
                         const responseData = await response.json();
                         console.log('✅ Note updated successfully:', responseData);
                         
-                        // Update local note arrays
+                        // Update local note arrays using NoteIdManager
                         if (note) {
                             note.text = newText;
                             note.startTime = newStartTime;
                             note.endTime = newEndTime;
+                            console.log('✅ Updated note in notes array');
                         }
                         
+                        // Also update the note in allNotes array
+                        const allNote = NoteIdManager.findNoteById(noteId, allNotes);
                         if (allNote) {
                             allNote.text = newText;
                             allNote.startTime = newStartTime;
                             allNote.endTime = newEndTime;
+                            console.log('✅ Updated note in allNotes array');
                         }
                         
                         // Exit edit mode
@@ -2148,9 +2152,9 @@
                     // localStorage fallback
                     console.log('📝 Using localStorage fallback for note update');
                     
-                    // Find notes with ID compatibility
-                    const note = notes.find(n => n.id === noteId || n._id === noteId);
-                    const allNote = allNotes.find(n => n.id === noteId || n._id === noteId);
+                    // Find notes using NoteIdManager
+                    const note = NoteIdManager.findNoteById(noteId, notes);
+                    const allNote = NoteIdManager.findNoteById(noteId, allNotes);
                     
                     if (note) {
                         note.text = newText;
@@ -2170,9 +2174,9 @@
                         console.error('❌ Note not found in allNotes array for localStorage update');
                     }
                     
-                    // Update localStorage with ID compatibility
+                    // Update localStorage using NoteIdManager
                     const userNotes = JSON.parse(localStorage.getItem(`notes_${currentUser.id}`) || '[]');
-                    const noteIndex = userNotes.findIndex(n => n.id === noteId || n._id === noteId);
+                    const noteIndex = userNotes.findIndex(n => NoteIdManager.idsMatch(NoteIdManager.getPrimaryId(n), noteId));
                     
                     if (noteIndex !== -1) {
                         userNotes[noteIndex].text = newText;
