@@ -814,9 +814,16 @@
                     // Check cloud token
                     const token = localStorage.getItem('cloudToken');
                     if (token) {
-                        currentUser = JSON.parse(localStorage.getItem('cloudUser'));
-                        hideAuthModal();
-                        loadUserNotes();
+                        const cloudUser = localStorage.getItem('cloudUser');
+                        if (cloudUser) {
+                            currentUser = JSON.parse(cloudUser);
+                            hideAuthModal();
+                            loadUserNotes();
+                        } else {
+                            // SECURITY: Clear invalid token
+                            localStorage.removeItem('cloudToken');
+                            showAuthModal();
+                        }
                     } else {
                         showAuthModal();
                     }
@@ -833,6 +840,14 @@
                 }
             } catch (error) {
                 console.error('❌ Error during authentication check:', error);
+                // SECURITY: Clear potentially corrupted data
+                if (USE_CLOUD) {
+                    localStorage.removeItem('cloudToken');
+                    localStorage.removeItem('cloudUser');
+                } else {
+                    localStorage.removeItem('currentUser');
+                }
+                currentUser = null;
                 // Fallback to showing auth modal
                 showAuthModal();
             }
@@ -1074,9 +1089,18 @@
                 localStorage.removeItem('currentUser');
             }
             
+            // SECURITY: Clear all user data and state
             currentUser = null;
             notes = [];
             allNotes = [];
+            
+            // Clear saved page state for security
+            localStorage.removeItem('youtubeNoteClipper_state');
+            
+            // Clear UI displays
+            renderCurrentVideoNotes();
+            renderAllNotesSidebar();
+            updateUserProfile();
             
             // Show login button and auth modal after logout
             if (document.getElementById('login-btn')) {
@@ -1096,6 +1120,12 @@
 
         // Load video function
         async function handleLoadVideo() {
+            // SECURITY CHECK: Ensure user is authenticated before loading videos
+            if (!currentUser) {
+                showToast('Please log in to load videos', 'error');
+                return;
+            }
+            
             const urlInput = document.getElementById('url-input');
             if (!urlInput || !urlInput.value.trim()) {
                 showToast('Please enter a YouTube URL', 'error');
@@ -1290,7 +1320,13 @@
             }
             
             if (!user) {
-                console.log('No user authenticated, cannot load user notes');
+                console.log('No user authenticated, clearing all notes for security');
+                // SECURITY FIX: Clear all notes when no user is authenticated
+                allNotes = [];
+                notes = [];
+                renderCurrentVideoNotes();
+                renderAllNotesSidebar();
+                updateUserProfile();
                 return;
             }
             
@@ -1367,6 +1403,16 @@
             console.log('notes array length:', notes ? notes.length : 'undefined');
             console.log('notes array:', notes);
             console.log('currentUser:', currentUser);
+            
+            // SECURITY CHECK: Ensure user is authenticated before rendering notes
+            if (!currentUser) {
+                console.log('🚨 Security: No authenticated user, clearing notes display');
+                const container = document.getElementById('current-video-notes');
+                if (container) {
+                    container.innerHTML = '<p class="text-gray-500 text-center py-8">Please log in to view notes</p>';
+                }
+                return;
+            }
             
             // Debug: Log the actual structure of each note
             if (notes && notes.length > 0) {
@@ -1620,6 +1666,16 @@
             console.log('allNotes length:', allNotes.length);
             console.log('allNotes sample:', allNotes.slice(0, 2));
             
+            // SECURITY CHECK: Ensure user is authenticated before rendering notes
+            if (!currentUser) {
+                console.log('🚨 Security: No authenticated user, clearing sidebar');
+                const container = document.getElementById('all-notes-sidebar');
+                if (container) {
+                    container.innerHTML = '<p class="text-gray-500 text-center py-6 text-sm">Please log in to view notes</p>';
+                }
+                return;
+            }
+            
             const container = document.getElementById('all-notes-sidebar');
             if (!container) return;
             
@@ -1666,6 +1722,13 @@
         // Load video by ID
         async function loadVideoById(videoId) {
             console.log('🔍 loadVideoById called with videoId:', videoId);
+            
+            // SECURITY CHECK: Ensure user is authenticated before loading video notes
+            if (!currentUser) {
+                console.log('🚨 Security: No authenticated user, cannot load video notes');
+                showToast('Please log in to view notes', 'error');
+                return;
+            }
             
             // Stop any active loop when loading a new video
             if (typeof stopLoop === 'function') {
@@ -2544,6 +2607,12 @@
         
         // State persistence functions
         function savePageState() {
+            // SECURITY CHECK: Only save state if user is authenticated
+            if (!currentUser) {
+                console.log('🚨 Security: No authenticated user, cannot save state');
+                return;
+            }
+            
             const state = {
                 currentVideoId: currentVideoId,
                 currentVideoTitle: currentVideoTitle,
@@ -2563,6 +2632,13 @@
                 const savedState = localStorage.getItem('youtubeNoteClipper_state');
                 if (savedState) {
                     const state = JSON.parse(savedState);
+                    
+                    // SECURITY CHECK: Only restore state if user is authenticated
+                    if (!currentUser) {
+                        console.log('🚨 Security: No authenticated user, clearing saved state');
+                        localStorage.removeItem('youtubeNoteClipper_state');
+                        return;
+                    }
                     
                     // Restore basic state
                     currentVideoId = state.currentVideoId || '';
@@ -2836,6 +2912,12 @@
 
         // Debug function for edit issues
         window.debugEditIssue = function() {
+            // SECURITY CHECK: Only allow debug for authenticated users
+            if (!currentUser) {
+                showToast('Please login first to use debug functions', 'error');
+                return;
+            }
+            
             alert('Debug function called! Check console for details.');
             console.log('🐛 Debug Edit Issue');
             console.log('📊 Current state:', {
