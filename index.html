@@ -279,6 +279,16 @@
         #theme-dropdown .theme-option:hover {
             background-color: var(--bg-primary) !important;
         }
+        
+        /* View toggle button styling */
+        .active-view {
+            background-color: #2563eb !important;
+            color: white !important;
+        }
+        
+        #video-note-view-btn, #note-preview-view-btn {
+            transition: all 0.2s ease;
+        }
     </style>
 </head>
 <body class="bg-gray-100 h-screen">
@@ -461,6 +471,16 @@
 
             <!-- Main Content Area -->
             <div class="flex-1 flex flex-col min-w-0">
+                <!-- View Toggle Buttons -->
+                <div class="bg-gray-800 p-2 flex justify-center space-x-4">
+                    <button id="video-note-view-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition active-view">
+                        📺 Video Notes
+                    </button>
+                    <button id="note-preview-view-btn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
+                        📝 Note Preview
+                    </button>
+                </div>
+                
                 <!-- Main Content -->
                 <main class="flex-1 bg-white p-4 lg:p-6 w-full">
 
@@ -468,8 +488,8 @@
                 
 
 
-                    <!-- Video and Notes Section -->
-                    <div class="grid grid-cols-1 xl:grid-cols-4 gap-4 lg:gap-6">
+                    <!-- Video-Note View -->
+                    <div id="video-note-view" class="grid grid-cols-1 xl:grid-cols-4 gap-4 lg:gap-6">
                     <!-- Video Player -->
                         <div class="xl:col-span-3">
                             <!-- YouTube Player -->
@@ -510,6 +530,32 @@
                                 <div id="current-video-notes" class="space-y-3 max-h-[600px] overflow-y-auto">
                                     <p class="text-gray-500 text-center py-8">No video loaded</p>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Note-Preview View -->
+                    <div id="note-preview-view" class="hidden">
+                        <div class="bg-white border border-gray-200 rounded-lg p-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-2xl font-bold text-gray-800">All Notes Preview</h3>
+                                <div class="flex items-center space-x-3">
+                                    <button id="expand-all-notes" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
+                                        📖 Expand All
+                                    </button>
+                                    <button id="collapse-all-notes" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition">
+                                        📕 Collapse All
+                                    </button>
+                                    <select id="sort-notes" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                        <option value="newest">Newest First</option>
+                                        <option value="oldest">Oldest First</option>
+                                        <option value="alphabetical">Alphabetical</option>
+                                        <option value="video">By Video</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div id="all-notes-preview" class="space-y-4">
+                                <!-- Notes will be populated here -->
                             </div>
                         </div>
                     </div>
@@ -625,6 +671,32 @@
                     sidebar.classList.add('collapsed');
                     mainContent.classList.add('sidebar-collapsed');
                     console.log('✅ Sidebar initialized to collapsed state');
+                }
+                
+                // View toggle buttons
+                const videoNoteViewBtn = document.getElementById('video-note-view-btn');
+                const notePreviewViewBtn = document.getElementById('note-preview-view-btn');
+                
+                if (videoNoteViewBtn) {
+                    videoNoteViewBtn.addEventListener('click', switchToVideoNoteView);
+                }
+                if (notePreviewViewBtn) {
+                    notePreviewViewBtn.addEventListener('click', switchToNotePreviewView);
+                }
+                
+                // Note preview controls
+                const expandAllNotesBtn = document.getElementById('expand-all-notes');
+                const collapseAllNotesBtn = document.getElementById('collapse-all-notes');
+                const sortNotesSelect = document.getElementById('sort-notes');
+                
+                if (expandAllNotesBtn) {
+                    expandAllNotesBtn.addEventListener('click', expandAllNotes);
+                }
+                if (collapseAllNotesBtn) {
+                    collapseAllNotesBtn.addEventListener('click', collapseAllNotes);
+                }
+                if (sortNotesSelect) {
+                    sortNotesSelect.addEventListener('change', renderNotePreview);
                 }
                 
                 // Toolbar event listeners
@@ -3038,6 +3110,141 @@
                 });
             }
         };
+
+        // View switching functions
+        function switchToVideoNoteView() {
+            document.getElementById('video-note-view').classList.remove('hidden');
+            document.getElementById('note-preview-view').classList.add('hidden');
+            document.getElementById('video-note-view-btn').classList.add('active-view');
+            document.getElementById('video-note-view-btn').classList.remove('bg-gray-600');
+            document.getElementById('video-note-view-btn').classList.add('bg-blue-600');
+            document.getElementById('note-preview-view-btn').classList.remove('active-view');
+            document.getElementById('note-preview-view-btn').classList.remove('bg-blue-600');
+            document.getElementById('note-preview-view-btn').classList.add('bg-gray-600');
+        }
+
+        function switchToNotePreviewView() {
+            document.getElementById('video-note-view').classList.add('hidden');
+            document.getElementById('note-preview-view').classList.remove('hidden');
+            document.getElementById('note-preview-view-btn').classList.add('active-view');
+            document.getElementById('note-preview-view-btn').classList.remove('bg-gray-600');
+            document.getElementById('note-preview-view-btn').classList.add('bg-blue-600');
+            document.getElementById('video-note-view-btn').classList.remove('active-view');
+            document.getElementById('video-note-view-btn').classList.remove('bg-blue-600');
+            document.getElementById('video-note-view-btn').classList.add('bg-gray-600');
+            renderNotePreview();
+        }
+
+        // Note preview rendering functions
+        function renderNotePreview() {
+            if (!currentUser || !allNotes || allNotes.length === 0) {
+                document.getElementById('all-notes-preview').innerHTML = '<p class="text-gray-500 text-center py-8">No notes available</p>';
+                return;
+            }
+
+            const container = document.getElementById('all-notes-preview');
+            const sortValue = document.getElementById('sort-notes').value;
+            
+            // Sort notes based on selection
+            let sortedNotes = [...allNotes];
+            switch (sortValue) {
+                case 'newest':
+                    sortedNotes.sort((a, b) => new Date(b.createdAt || b.created_at) - new Date(a.createdAt || a.created_at));
+                    break;
+                case 'oldest':
+                    sortedNotes.sort((a, b) => new Date(a.createdAt || a.created_at) - new Date(b.createdAt || b.created_at));
+                    break;
+                case 'alphabetical':
+                    sortedNotes.sort((a, b) => a.text.localeCompare(b.text));
+                    break;
+                case 'video':
+                    sortedNotes.sort((a, b) => a.videoTitle?.localeCompare(b.videoTitle) || a.videoId?.localeCompare(b.videoId));
+                    break;
+            }
+
+            let notesHTML = '';
+            sortedNotes.forEach((note, index) => {
+                const noteId = note._id || note.id;
+                notesHTML += `
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4" data-note-id="${noteId}">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-800 mb-2">${escapeHTML(note.text.substring(0, 100))}${note.text.length > 100 ? '...' : ''}</h4>
+                                <div class="text-sm text-gray-600 mb-2">
+                                    <span class="font-mono">${formatTime(note.startTime)} → ${formatTime(note.endTime)}</span>
+                                    <span class="mx-2">•</span>
+                                    <span class="text-blue-600">${escapeHTML(note.videoTitle || note.videoId)}</span>
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    Created: ${new Date(note.createdAt || note.created_at).toLocaleDateString()}
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="toggleNoteExpansion('${noteId}')" class="text-blue-600 hover:text-blue-800 text-sm px-2 py-1 rounded border border-blue-200 hover:bg-blue-50">
+                                    📖 Expand
+                                </button>
+                                <button onclick="editNote('${noteId}')" class="text-green-600 hover:text-green-800 text-sm px-2 py-1 rounded border border-green-200 hover:bg-green-50">
+                                    ✏️ Edit
+                                </button>
+                                <button onclick="deleteNote('${noteId}')" class="text-red-600 hover:text-red-800 text-sm px-2 py-1 rounded border border-red-200 hover:bg-red-50">
+                                    🗑️ Delete
+                                </button>
+                            </div>
+                        </div>
+                        <div id="note-details-${noteId}" class="hidden mt-3 pt-3 border-t border-gray-200">
+                            <div class="bg-white p-3 rounded border">
+                                <p class="text-gray-700 text-sm">${escapeHTML(note.text)}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = notesHTML;
+        }
+
+        // Note expansion toggle
+        function toggleNoteExpansion(noteId) {
+            const detailsElement = document.getElementById(`note-details-${noteId}`);
+            const button = event.target;
+            
+            if (detailsElement.classList.contains('hidden')) {
+                detailsElement.classList.remove('hidden');
+                button.textContent = '📕 Collapse';
+                button.classList.remove('bg-blue-50', 'border-blue-200');
+                button.classList.add('bg-yellow-50', 'border-yellow-200');
+            } else {
+                detailsElement.classList.add('hidden');
+                button.textContent = '📖 Expand';
+                button.classList.remove('bg-yellow-50', 'border-yellow-200');
+                button.classList.add('bg-blue-50', 'border-blue-200');
+            }
+        }
+
+        // Expand/Collapse all notes
+        function expandAllNotes() {
+            const noteElements = document.querySelectorAll('[id^="note-details-"]');
+            const buttons = document.querySelectorAll('[onclick^="toggleNoteExpansion"]');
+            
+            noteElements.forEach(element => element.classList.remove('hidden'));
+            buttons.forEach(button => {
+                button.textContent = '📕 Collapse';
+                button.classList.remove('bg-blue-50', 'border-blue-200');
+                button.classList.add('bg-yellow-50', 'border-yellow-200');
+            });
+        }
+
+        function collapseAllNotes() {
+            const noteElements = document.querySelectorAll('[id^="note-details-"]');
+            const buttons = document.querySelectorAll('[onclick^="toggleNoteExpansion"]');
+            
+            noteElements.forEach(element => element.classList.add('hidden'));
+            buttons.forEach(button => {
+                button.textContent = '📖 Expand';
+                button.classList.remove('bg-yellow-50', 'border-yellow-200');
+                button.classList.add('bg-blue-50', 'border-blue-200');
+            });
+        }
 
         console.log('✅ Cloud version JavaScript loaded successfully');
         console.log(`🌐 Using ${USE_CLOUD ? 'Cloud API' : 'localStorage'} for data storage`);
