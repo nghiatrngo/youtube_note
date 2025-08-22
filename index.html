@@ -328,7 +328,6 @@
             // Add event listeners
             if (loadVideoBtn) loadVideoBtn.addEventListener('click', handleLoadVideo);
             if (urlInput) urlInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleLoadVideo());
-            if (addNoteBtn) addNoteBtn.addEventListener('click', handleAddNote);
             if (stopLoopingBtn) stopLoopingBtn.addEventListener('click', stopLoop);
             
             // Authentication event listeners
@@ -358,7 +357,12 @@
             if (toolbarStopLooping) toolbarStopLooping.addEventListener('click', stopLoop);
             
             // Note taking event listeners
-            if (addNoteBtn) addNoteBtn.addEventListener('click', handleAddNote);
+            if (addNoteBtn) {
+                console.log('✅ Add note button found, adding event listener');
+                addNoteBtn.addEventListener('click', handleAddNote);
+            } else {
+                console.log('❌ Add note button not found');
+            }
             
             // Login button event listener
             const loginBtn = document.getElementById('login-btn');
@@ -892,39 +896,40 @@
 
         // Add note function
         async function handleAddNote() {
+            console.log('🔍 handleAddNote called');
+            
             if (!currentUser) {
                 showToast('Please login first', 'error');
                 return;
             }
 
-            const videoId = getYouTubeVideoId(urlInput.value);
-            if (!videoId) {
-                showToast('Please enter a valid YouTube URL', 'error');
+            if (!currentVideoId) {
+                showToast('Please load a video first', 'error');
                 return;
             }
 
-            const startTime = parseInt(startTimeDisplay.textContent.split(':')[0]) * 60 + parseInt(startTimeDisplay.textContent.split(':')[1]);
-            const endTime = parseInt(endTimeDisplay.textContent.split(':')[0]) * 60 + parseInt(endTimeDisplay.textContent.split(':')[1]);
             const text = noteText.value.trim();
-
             if (!text) {
                 showToast('Please enter note text', 'error');
                 return;
             }
 
-            if (startTime >= endTime) {
+            if (tempStartTime === 0 || tempEndTime === 0) {
+                showToast('Please set both start and end times first', 'error');
+                return;
+            }
+
+            if (tempStartTime >= tempEndTime) {
                 showToast('Start time must be before end time', 'error');
                 return;
             }
 
-            // Try to get real video title
-            const videoTitle = await getVideoTitle(videoId);
-
+            // Use current video info
             const note = {
-                videoId,
-                videoTitle,
-                startTime,
-                endTime,
+                videoId: currentVideoId,
+                videoTitle: currentVideoTitle,
+                startTime: tempStartTime,
+                endTime: tempEndTime,
                 text: text.trim()
             };
 
@@ -949,8 +954,8 @@
                         noteText.value = '';
                         tempStartTime = 0;
                         tempEndTime = 0;
-                        startTimeDisplay.textContent = '00:00';
-                        endTimeDisplay.textContent = '00:00';
+                        if (toolbarStartTime) toolbarStartTime.textContent = '00:00';
+                        if (toolbarEndTime) toolbarEndTime.textContent = '00:00';
                         
                         // Update displays
                         renderCurrentVideoNotes();
@@ -979,8 +984,8 @@
                     noteText.value = '';
                     tempStartTime = 0;
                     tempEndTime = 0;
-                    startTimeDisplay.textContent = '00:00';
-                    endTimeDisplay.textContent = '00:00';
+                    if (toolbarStartTime) toolbarStartTime.textContent = '00:00';
+                    if (toolbarEndTime) toolbarEndTime.textContent = '00:00';
                     
                     // Update displays
                     renderCurrentVideoNotes();
@@ -1209,18 +1214,28 @@
 
         // Set time functions
         function setTime(type) {
+            console.log('🔍 setTime called with type:', type);
             if (typeof player !== 'undefined' && player && typeof player.getCurrentTime === 'function') {
                 const currentTime = Math.floor(player.getCurrentTime());
+                console.log('Current player time:', currentTime);
+                
                 if (type === 'start') {
                     tempStartTime = currentTime;
-
-                    if (toolbarStartTime) toolbarStartTime.textContent = formatTime(currentTime);
+                    console.log('Set start time to:', tempStartTime);
+                    if (toolbarStartTime) {
+                        toolbarStartTime.textContent = formatTime(currentTime);
+                        console.log('Updated toolbar start time display');
+                    }
                 } else {
                     tempEndTime = currentTime;
-
-                    if (toolbarEndTime) toolbarEndTime.textContent = formatTime(currentTime);
+                    console.log('Set end time to:', tempEndTime);
+                    if (toolbarEndTime) {
+                        toolbarEndTime.textContent = formatTime(currentTime);
+                        console.log('Updated toolbar end time display');
+                    }
                 }
             } else {
+                console.log('❌ Player not ready');
                 showToast('Player not ready. Please wait for video to load.', 'warning');
             }
         }
