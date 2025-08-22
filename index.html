@@ -3179,21 +3179,47 @@
                                     Created: ${new Date(note.createdAt || note.created_at).toLocaleDateString()}
                                 </div>
                             </div>
-                            <div class="flex items-center space-x-2">
-                                <button onclick="toggleNoteExpansion('${noteId}')" class="text-blue-600 hover:text-blue-800 text-sm px-2 py-1 rounded border border-blue-200 hover:bg-blue-50">
-                                    📖 Expand
-                                </button>
-                                <button onclick="editNote('${noteId}')" class="text-green-600 hover:text-green-800 text-sm px-2 py-1 rounded border border-green-200 hover:bg-green-50">
-                                    ✏️ Edit
-                                </button>
-                                <button onclick="deleteNote('${noteId}')" class="text-red-600 hover:text-red-800 text-sm px-2 py-1 rounded border border-red-200 hover:bg-red-50">
-                                    🗑️ Delete
-                                </button>
-                            </div>
+                                                            <div class="flex items-center space-x-2">
+                                    <button onclick="toggleNoteExpansion('${noteId}')" class="text-blue-600 hover:text-blue-800 text-sm px-2 py-1 rounded border border-blue-200 hover:bg-blue-50">
+                                        📖 Expand
+                                    </button>
+                                    <button onclick="editNotePreview('${noteId}')" class="text-green-600 hover:text-green-800 text-sm px-2 py-1 rounded border border-green-200 hover:bg-green-50">
+                                        ✏️ Edit
+                                    </button>
+                                    <button onclick="deleteNotePreview('${noteId}')" class="text-red-600 hover:text-red-800 text-sm px-2 py-1 rounded border border-red-200 hover:bg-red-50">
+                                        🗑️ Delete
+                                    </button>
+                                </div>
                         </div>
                         <div id="note-details-${noteId}" class="hidden mt-3 pt-3 border-t border-gray-200">
                             <div class="bg-white p-3 rounded border">
-                                <p class="text-gray-700 text-sm">${escapeHTML(note.text)}</p>
+                                <div id="note-text-display-${noteId}">
+                                    <p class="text-gray-700 text-sm">${escapeHTML(note.text)}</p>
+                                </div>
+                                <div id="note-edit-form-${noteId}" class="hidden">
+                                    <div class="space-y-3">
+                                        <div>
+                                            <label class="block text-xs text-gray-600 mb-1">Start Time (seconds)</label>
+                                            <input type="number" name="startTime" step="0.1" min="0" value="${note.startTime}" class="w-full p-2 border border-gray-300 rounded text-sm">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs text-gray-600 mb-1">End Time (seconds)</label>
+                                            <input type="number" name="endTime" step="0.1" min="0" value="${note.endTime}" class="w-full p-2 border border-gray-300 rounded text-sm">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs text-gray-600 mb-1">Note Text</label>
+                                            <textarea name="text" class="w-full p-2 border border-gray-300 rounded text-sm h-20">${escapeHTML(note.text)}</textarea>
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            <button onclick="saveNotePreviewEdit('${noteId}')" class="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600 transition">
+                                                💾 Save
+                                            </button>
+                                            <button onclick="cancelNotePreviewEdit('${noteId}')" class="px-3 py-1 bg-gray-500 text-white text-sm rounded hover:bg-gray-600 transition">
+                                                ❌ Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -3244,6 +3270,149 @@
                 button.classList.remove('bg-yellow-50', 'border-yellow-200');
                 button.classList.add('bg-blue-50', 'border-blue-200');
             });
+        }
+
+        // Note preview editing functions
+        function editNotePreview(noteId) {
+            const note = NoteIdManager.findNoteInArrays(noteId, allNotes);
+            if (!note) {
+                showToast('Note not found', 'error');
+                return;
+            }
+
+            // Hide display, show edit form
+            document.getElementById(`note-text-display-${noteId}`).classList.add('hidden');
+            document.getElementById(`note-edit-form-${noteId}`).classList.remove('hidden');
+            
+            // Update button text
+            const editButton = event.target;
+            editButton.textContent = '✏️ Editing...';
+            editButton.disabled = true;
+            editButton.classList.add('opacity-50');
+        }
+
+        function saveNotePreviewEdit(noteId) {
+            const note = NoteIdManager.findNoteInArrays(noteId, allNotes);
+            if (!note) {
+                showToast('Note not found', 'error');
+                return;
+            }
+
+            const form = document.getElementById(`note-edit-form-${noteId}`);
+            const startTimeInput = form.querySelector('input[name="startTime"]');
+            const endTimeInput = form.querySelector('input[name="endTime"]');
+            const textInput = form.querySelector('textarea[name="text"]');
+
+            const startTime = parseFloat(startTimeInput.value);
+            const endTime = parseFloat(endTimeInput.value);
+            const text = textInput.value.trim();
+
+            // Validation
+            if (!text || text === '') {
+                showToast('Note text is required', 'error');
+                return;
+            }
+
+            if (isNaN(startTime) || isNaN(endTime)) {
+                showToast('Start and end times must be valid numbers', 'error');
+                return;
+            }
+
+            if (startTime >= endTime) {
+                showToast('End time must be greater than start time', 'error');
+                return;
+            }
+
+            // Update note data
+            note.startTime = startTime;
+            note.endTime = endTime;
+            note.text = text;
+
+            // Save to backend
+            saveNotePreviewToBackend(noteId, startTime, endTime, text);
+        }
+
+        async function saveNotePreviewToBackend(noteId, startTime, endTime, text) {
+            try {
+                const token = localStorage.getItem('cloudToken');
+                if (!token) {
+                    showToast('No authentication token found', 'error');
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE}/notes/${noteId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        startTime,
+                        endTime,
+                        text
+                    })
+                });
+
+                if (response.ok) {
+                    showToast('Note updated successfully', 'success');
+                    
+                    // Update the note preview display
+                    const note = NoteIdManager.findNoteInArrays(noteId, allNotes);
+                    if (note) {
+                        // Update the preview text
+                        const previewText = document.querySelector(`[data-note-id="${noteId}"] h4`);
+                        if (previewText) {
+                            previewText.textContent = `${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`;
+                        }
+                        
+                        // Update the time display
+                        const timeDisplay = document.querySelector(`[data-note-id="${noteId}"] .font-mono`);
+                        if (timeDisplay) {
+                            timeDisplay.textContent = `${formatTime(startTime)} → ${formatTime(endTime)}`;
+                        }
+                    }
+                    
+                    // Exit edit mode
+                    exitNotePreviewEditMode(noteId);
+                    
+                    // Refresh the note preview
+                    renderNotePreview();
+                } else {
+                    const errorData = await response.json();
+                    showToast(`Failed to update note: ${errorData.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error updating note:', error);
+                showToast('Failed to update note. Please try again.', 'error');
+            }
+        }
+
+        function cancelNotePreviewEdit(noteId) {
+            exitNotePreviewEditMode(noteId);
+        }
+
+        function exitNotePreviewEditMode(noteId) {
+            // Hide edit form, show display
+            document.getElementById(`note-text-display-${noteId}`).classList.remove('hidden');
+            document.getElementById(`note-edit-form-${noteId}`).classList.add('hidden');
+            
+            // Reset button
+            const editButton = document.querySelector(`[onclick="editNotePreview('${noteId}')"]`);
+            if (editButton) {
+                editButton.textContent = '✏️ Edit';
+                editButton.disabled = false;
+                editButton.classList.remove('opacity-50');
+            }
+        }
+
+        function deleteNotePreview(noteId) {
+            if (confirm('Are you sure you want to delete this note? This action cannot be undone.')) {
+                deleteNote(noteId);
+                // Refresh the note preview after deletion
+                setTimeout(() => {
+                    renderNotePreview();
+                }, 500);
+            }
         }
 
         console.log('✅ Cloud version JavaScript loaded successfully');
