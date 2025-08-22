@@ -85,9 +85,9 @@
                             Load
                         </button>
                     </div>
-                </div>
+                    </div>
             </div>
-            
+
             <!-- Video Controls Toolbar -->
                             <div id="video-controls-toolbar" class="flex items-center space-x-2 hidden">
                     <button id="toolbar-play-pause" class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs transition">
@@ -114,14 +114,14 @@
                     <button id="toolbar-stop-looping" class="hidden bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs transition">
                         Stop Loop
                     </button>
-                </div>
+                    </div>
             
             <div class="flex items-center space-x-3">
                 <!-- User Info (hidden by default) -->
                 <div id="user-info" class="hidden flex items-center space-x-3">
                     <span class="text-gray-600 text-sm">Welcome, <span id="username-display">Username</span></span>
                     <button id="logout-btn" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition">Logout</button>
-                </div>
+                    </div>
                 
                 <!-- Login Button (shown by default) -->
                 <button id="login-btn" class="bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700 transition">Login</button>
@@ -135,14 +135,14 @@
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-semibold">Login / Register</h2>
                 <button id="close-auth" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-            </div>
+                </div>
             
             <!-- Login Form -->
             <form id="login-form" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Email</label>
                     <input type="email" id="login-email" required class="mt-1 w-full p-2 border border-gray-300 rounded-md">
-                </div>
+            </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Password</label>
                     <input type="password" id="login-password" required class="mt-1 w-full p-2 border border-gray-300 rounded-md">
@@ -168,99 +168,99 @@
                 <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700">Create Account</button>
                 <button type="button" id="show-login" class="w-full text-blue-600 hover:underline">Already have account?</button>
             </form>
-        </div>
-    </div>
+                    </div>
+                </div>
 
     <!-- Main Container -->
     <div class="flex h-full">
         <!-- Sidebar -->
         <div id="sidebar" class="sidebar w-80 bg-white border-r border-gray-200 flex-shrink-0">
-            <!-- User Profile Section -->
-            <div class="p-4">
-                <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg p-4 mb-4">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-xl font-bold">
-                            <span id="user-avatar">U</span>
+                <!-- User Profile Section -->
+                <div class="p-4">
+                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg p-4 mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-xl font-bold">
+                                <span id="user-avatar">U</span>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-bold" id="profile-username">Username</h2>
+                                <p class="text-blue-100 text-sm" id="profile-email">email@example.com</p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 class="text-lg font-bold" id="profile-username">Username</h2>
-                            <p class="text-blue-100 text-sm" id="profile-email">email@example.com</p>
+                        <div class="flex space-x-4 mt-3 text-sm">
+                            <div>
+                                <span class="font-bold" id="total-notes">0</span>
+                                <span class="text-blue-100"> notes</span>
+                            </div>
+                            <div>
+                                <span class="font-bold" id="total-videos">0</span>
+                                <span class="text-blue-100"> videos</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="flex space-x-4 mt-3 text-sm">
-                        <div>
-                            <span class="font-bold" id="total-notes">0</span>
-                            <span class="text-blue-100"> notes</span>
-                        </div>
-                        <div>
-                            <span class="font-bold" id="total-videos">0</span>
-                            <span class="text-blue-100"> videos</span>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- All Notes Sidebar -->
-                <div class="bg-white border border-gray-200 rounded-lg p-3">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="text-sm font-semibold text-gray-800">All My Notes</h3>
-                        <button id="refresh-all-notes" class="text-blue-600 hover:text-blue-800 text-xs">Refresh</button>
-                    </div>
-                    <div id="all-notes-sidebar" class="space-y-3 max-h-80 overflow-y-auto">
-                        <p class="text-gray-500 text-center py-6 text-sm">Loading notes...</p>
+                    <!-- All Notes Sidebar -->
+                    <div class="bg-white border border-gray-200 rounded-lg p-3">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="text-sm font-semibold text-gray-800">All My Notes</h3>
+                            <button id="refresh-all-notes" class="text-blue-600 hover:text-blue-800 text-xs">Refresh</button>
+                        </div>
+                        <div id="all-notes-sidebar" class="space-y-3 max-h-80 overflow-y-auto">
+                            <p class="text-gray-500 text-center py-6 text-sm">Loading notes...</p>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Main Content Area -->
-        <div class="flex-1 flex flex-col min-w-0">
-            <!-- Main Content -->
-            <main class="flex-1 bg-white p-4 lg:p-6 w-full">
-                <!-- URL Input Section -->
+            <!-- Main Content Area -->
+            <div class="flex-1 flex flex-col min-w-0">
+                <!-- Main Content -->
+                <main class="flex-1 bg-white p-4 lg:p-6 w-full">
+                    <!-- URL Input Section -->
                 <div id="url-input-section" class="flex flex-col sm:flex-row gap-4 mb-6">
-                    <input type="text" id="youtube-url" class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Enter YouTube URL (e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ)">
-                    <button id="load-video" class="bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Load Video
-                    </button>
-                </div>
+                        <input type="text" id="youtube-url" class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Enter YouTube URL (e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ)">
+                        <button id="load-video" class="bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Load Video
+                        </button>
+                    </div>
                 
 
 
-                <!-- Video and Notes Section -->
-                <div class="grid grid-cols-1 xl:grid-cols-4 gap-4 lg:gap-6">
+                    <!-- Video and Notes Section -->
+                    <div class="grid grid-cols-1 xl:grid-cols-4 gap-4 lg:gap-6">
                     <!-- Video Player -->
-                    <div class="xl:col-span-3">
-                        <!-- YouTube Player -->
+                        <div class="xl:col-span-3">
+                            <!-- YouTube Player -->
                         <div id="player-container" class="bg-black rounded-lg overflow-hidden shadow-inner" style="aspect-ratio: 16/9;">
-                             <div id="player-placeholder" class="w-full h-full flex items-center justify-center text-gray-400">
-                                <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                <span class="ml-4">Video will appear here</span>
-                            </div>
+                                 <div id="player-placeholder" class="w-full h-full flex items-center justify-center text-gray-400">
+                                    <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    <span class="ml-4">Video will appear here</span>
+                                </div>
                             <div id="player" class="w-full h-full"></div>
-                        </div>
-                    </div>
+                            </div>
+                                </div>
 
                     <!-- Right Sidebar with Note Input and Current Notes -->
                     <div class="xl:col-span-1 space-y-4">
                         <!-- Note Input Area -->
                         <div class="bg-white border border-gray-200 rounded-lg p-4">
                             <h3 class="text-lg font-semibold mb-3 text-gray-800">Create a Clip</h3>
-                            <textarea id="note-text" class="w-full p-3 border border-gray-300 rounded-lg h-24 focus:ring-2 focus:ring-blue-500" placeholder="Write your note for this clip..."></textarea>
-                            <button id="add-note" class="mt-3 w-full bg-green-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-green-600 transition shadow-md">
-                                Add Note & Clip
-                            </button>
+                                <textarea id="note-text" class="w-full p-3 border border-gray-300 rounded-lg h-24 focus:ring-2 focus:ring-blue-500" placeholder="Write your note for this clip..."></textarea>
+                                <button id="add-note" class="mt-3 w-full bg-green-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-green-600 transition shadow-md">
+                                    Add Note & Clip
+                                </button>
                         </div>
 
                         <!-- Current Video Notes -->
-                        <div class="bg-white border border-gray-200 rounded-lg p-4 h-fit">
-                            <h3 class="text-lg font-semibold mb-3 text-gray-800">Current Video Notes</h3>
-                            <div id="current-video-notes" class="space-y-3 max-h-96 overflow-y-auto">
-                                <p class="text-gray-500 text-center py-8">No video loaded</p>
+                            <div class="bg-white border border-gray-200 rounded-lg p-4 h-fit">
+                                <h3 class="text-lg font-semibold mb-3 text-gray-800">Current Video Notes</h3>
+                                <div id="current-video-notes" class="space-y-3 max-h-96 overflow-y-auto">
+                                    <p class="text-gray-500 text-center py-8">No video loaded</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </main>
+                </main>
         </div>
     </div>
 
@@ -274,7 +274,7 @@
         // Configuration - Supabase-enabled API
         const API_BASE = 'https://youtube-note-clipper-api.onrender.com/api';
         const USE_CLOUD = true; // Set to false to use localStorage only
-        
+
         // Global variables
         let player;
         let currentVideoId = '';
@@ -341,21 +341,21 @@
             if (loadVideoBtn) loadVideoBtn.addEventListener('click', handleLoadVideo);
             if (urlInput) urlInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleLoadVideo());
             if (stopLoopingBtn) stopLoopingBtn.addEventListener('click', stopLoop);
-            
-            // Authentication event listeners
+
+        // Authentication event listeners
             if (showRegisterBtn) showRegisterBtn.addEventListener('click', () => {
-                loginForm.classList.add('hidden');
-                registerForm.classList.remove('hidden');
-            });
-            
+            loginForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
+        });
+
             if (showLoginBtn) showLoginBtn.addEventListener('click', () => {
-                registerForm.classList.add('hidden');
-                loginForm.classList.remove('hidden');
-            });
-            
+            registerForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+        });
+
             if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
-            
-            // Form submissions
+
+        // Form submissions
             if (loginForm) loginForm.addEventListener('submit', handleLogin);
             if (registerForm) registerForm.addEventListener('submit', handleRegister);
             
@@ -413,6 +413,11 @@
             
             console.log('✅ DOM elements initialized, checking authentication...');
             checkAuth();
+            
+            // Restore previous page state after authentication
+            setTimeout(() => {
+                restorePageState();
+            }, 1000);
             } catch (error) {
                 console.error('❌ Error during initialization:', error);
                 // Show error message to user
@@ -506,9 +511,9 @@
         
         // Show URL input section
         function showUrlInput() {
-            if (urlInputSection && videoToolbar) {
+            if (urlInputSection && videoControlsToolbar) {
                 urlInputSection.classList.remove('hidden');
-                videoToolbar.classList.add('hidden');
+                videoControlsToolbar.classList.add('hidden');
                 // Clear URL input
                 if (urlInput) urlInput.value = '';
                 // Focus on URL input
@@ -737,26 +742,26 @@
                 playerPlaceholder.style.display = 'none';
             }
             
-                            // Load video in player
-                if (typeof player !== 'undefined' && player && typeof player.loadVideoById === 'function') {
-                    player.loadVideoById(videoId);
-                } else {
-                    // Create new player if it doesn't exist
-                    if (typeof YT !== 'undefined' && YT.Player) {
-                        player = new YT.Player('player', {
-                            videoId: videoId,
-                            width: '100%',
-                            height: '100%',
-                            playerVars: { 
-                                'playsinline': 1, 
-                                'rel': 0,
-                                'modestbranding': 1,
-                                'showinfo': 0
-                            },
-                            events: { 'onPlayerReady': onPlayerReady }
-                        });
-                    }
+            // Load video in player
+            if (typeof player !== 'undefined' && player && typeof player.loadVideoById === 'function') {
+                player.loadVideoById(videoId);
+            } else {
+                // Create new player if it doesn't exist
+                if (typeof YT !== 'undefined' && YT.Player) {
+                    player = new YT.Player('player', {
+                        videoId: videoId,
+                        width: '100%',
+                        height: '100%',
+                        playerVars: { 
+                            'playsinline': 1, 
+                            'rel': 0,
+                            'modestbranding': 1,
+                            'showinfo': 0
+                        },
+                        events: { 'onPlayerReady': onPlayerReady }
+                    });
                 }
+            }
             
             showToast(`Video loaded: ${currentVideoTitle}`, 'success');
             
@@ -773,6 +778,9 @@
             if (urlInput) {
                 urlInput.value = '';
             }
+            
+            // Save current page state
+            savePageState();
         }
 
         // Enhanced video title fetching
@@ -788,7 +796,7 @@
                 console.log('Could not fetch video title, using fallback');
             }
             
-            return `Video ${videoId}`;
+                    return `Video ${videoId}`;
         }
 
         // Load video notes
@@ -1054,34 +1062,37 @@
                         const data = await response.json();
                         notes.push(data.note);
                         allNotes.push(data.note);
-                        
-                        // Clear form
-                        noteText.value = '';
-                        tempStartTime = 0;
-                        tempEndTime = 0;
+
+            // Clear form
+            noteText.value = '';
+            tempStartTime = 0;
+            tempEndTime = 0;
                         if (toolbarStartTime) toolbarStartTime.textContent = '00:00';
                         if (toolbarEndTime) toolbarEndTime.textContent = '00:00';
+
+            // Update displays
+            renderCurrentVideoNotes();
+            renderAllNotesSidebar();
+            updateUserProfile();
+
+            showToast('Note added successfully!', 'success');
                         
-                        // Update displays
-                        renderCurrentVideoNotes();
-                        renderAllNotesSidebar();
-                        updateUserProfile();
-                        
-                        showToast('Note added successfully!', 'success');
+                        // Save current page state
+                        savePageState();
                     } else {
                         showToast('Failed to save note', 'error');
-                    }
+        }
                 } else {
                     // localStorage fallback
                     note.id = Date.now().toString();
                     note.userId = currentUser.id;
                     note.createdAt = new Date().toISOString();
-                    
+
                     notes.push(note);
                     allNotes.push(note);
-                    
+            
                     // Save to localStorage
-                    const userNotes = JSON.parse(localStorage.getItem(`notes_${currentUser.id}`) || '[]');
+                const userNotes = JSON.parse(localStorage.getItem(`notes_${currentUser.id}`) || '[]');
                     userNotes.push(note);
                     localStorage.setItem(`notes_${currentUser.id}`, JSON.stringify(userNotes));
                     
@@ -1094,17 +1105,20 @@
                     
                     // Update displays
                     renderCurrentVideoNotes();
-                    renderAllNotesSidebar();
+                renderAllNotesSidebar();
                     updateUserProfile();
                     
                     showToast('Note added successfully!', 'success');
+                    
+                    // Save current page state
+                    savePageState();
                 }
             } catch (error) {
                 console.error('Error adding note:', error);
                 showToast('Failed to save note', 'error');
             }
         }
-
+        
         // Update user profile
         function updateUserProfile() {
             if (!currentUser) return;
@@ -1341,10 +1355,13 @@
                         renderAllNotesSidebar();
                         showToast('Note updated successfully!', 'success');
                         
-                        // Reload the page to show all updates
+                        // Refresh the displays to show all updates
                         setTimeout(() => {
-                            window.location.reload();
-                        }, 1000);
+                            // Refresh current video notes and sidebar without page reload
+                            renderCurrentVideoNotes();
+                            renderAllNotesSidebar();
+                            showToast('Note updated and displays refreshed!', 'success');
+                        }, 500);
                     } else {
                         const errorData = await response.json().catch(() => ({}));
                         console.error('Server error:', errorData);
@@ -1381,10 +1398,13 @@
                     renderAllNotesSidebar();
                     showToast('Note updated successfully!', 'success');
                     
-                    // Reload the page to show all updates
+                    // Refresh the displays to show all updates
                     setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
+                        // Refresh current video notes and sidebar without page reload
+                        renderCurrentVideoNotes();
+                        renderAllNotesSidebar();
+                        showToast('Note updated and displays refreshed!', 'success');
+                    }, 500);
                 }
             } catch (error) {
                 console.error('Error updating note:', error);
@@ -1422,20 +1442,20 @@
                     }
                 } else {
                     // localStorage fallback
-                    notes = notes.filter(note => note.id !== noteId);
-                    allNotes = allNotes.filter(note => note.id !== noteId);
-                    
-                    // Update localStorage
-                    const userNotes = JSON.parse(localStorage.getItem(`notes_${currentUser.id}`) || '[]');
-                    const updatedNotes = userNotes.filter(note => note.id !== noteId);
-                    localStorage.setItem(`notes_${currentUser.id}`, JSON.stringify(updatedNotes));
-                    
-                    // Update displays
-                    renderCurrentVideoNotes();
-                    renderAllNotesSidebar();
-                    updateUserProfile();
-                    
-                    showToast('Note deleted successfully!', 'success');
+                notes = notes.filter(note => note.id !== noteId);
+                allNotes = allNotes.filter(note => note.id !== noteId);
+                
+                // Update localStorage
+                const userNotes = JSON.parse(localStorage.getItem(`notes_${currentUser.id}`) || '[]');
+                const updatedNotes = userNotes.filter(note => note.id !== noteId);
+                localStorage.setItem(`notes_${currentUser.id}`, JSON.stringify(updatedNotes));
+                
+                // Update displays
+                renderCurrentVideoNotes();
+                renderAllNotesSidebar();
+                updateUserProfile();
+                
+                showToast('Note deleted successfully!', 'success');
                 }
             } catch (error) {
                 console.error('Error deleting note:', error);
@@ -1548,8 +1568,11 @@
                     if (toolbarEndTime) {
                         toolbarEndTime.textContent = formatTime(currentTime);
                         console.log('Updated toolbar end time display');
-                    }
                 }
+                }
+                
+                // Save state after setting time
+                savePageState();
             } else {
                 console.log('❌ Player not ready');
                 showToast('Player not ready. Please wait for video to load.', 'warning');
@@ -1568,13 +1591,13 @@
                 player.pauseVideo();
                 if (toolbarPlayPause) {
                     toolbarPlayPause.innerHTML = '▶️ Play';
-                    toolbarPlayPause.className = 'bg-green-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-600 transition';
+                    toolbarPlayPause.className = 'bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs transition';
                 }
             } else { // Paused, ended, or buffering
                 player.playVideo();
                 if (toolbarPlayPause) {
                     toolbarPlayPause.innerHTML = '⏸️ Pause';
-                    toolbarPlayPause.className = 'bg-yellow-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-yellow-600 transition';
+                    toolbarPlayPause.className = 'bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs transition';
                 }
             }
         }
@@ -1609,6 +1632,91 @@
             showToast(`Paused and seeked ${frameText}`, 'info');
         }
         
+        // State persistence functions
+        function savePageState() {
+            const state = {
+                currentVideoId: currentVideoId,
+                currentVideoTitle: currentVideoTitle,
+                tempStartTime: tempStartTime,
+                tempEndTime: tempEndTime,
+                notes: notes,
+                allNotes: allNotes,
+                currentUser: currentUser,
+                videoControlsVisible: videoControlsToolbar ? !videoControlsToolbar.classList.contains('hidden') : false
+            };
+            localStorage.setItem('youtubeNoteClipper_state', JSON.stringify(state));
+        }
+        
+        function restorePageState() {
+            try {
+                const savedState = localStorage.getItem('youtubeNoteClipper_state');
+                if (savedState) {
+                    const state = JSON.parse(savedState);
+                    
+                    // Restore basic state
+                    currentVideoId = state.currentVideoId || '';
+                    currentVideoTitle = state.currentVideoTitle || '';
+                    tempStartTime = state.tempStartTime || 0;
+                    tempEndTime = state.tempEndTime || 0;
+                    notes = state.notes || [];
+                    allNotes = state.allNotes || [];
+                    
+                    // Restore user if still valid
+                    if (state.currentUser) {
+                        if (USE_CLOUD) {
+                            const cloudToken = localStorage.getItem('cloudToken');
+                            if (cloudToken) {
+                                currentUser = state.currentUser;
+                            }
+                        } else {
+                            currentUser = state.currentUser;
+                        }
+                    }
+                    
+                    // Restore UI state
+                    if (state.currentVideoId && state.currentVideoTitle) {
+                        // Restore video player
+                        if (typeof YT !== 'undefined' && YT.Player) {
+                            player = new YT.Player('player', {
+                                videoId: state.currentVideoId,
+                                width: '100%',
+                                height: '100%',
+                                playerVars: { 
+                                    'playsinline': 1, 
+                                    'rel': 0,
+                                    'modestbranding': 1,
+                                    'showinfo': 0
+                                },
+                                events: { 'onPlayerReady': onPlayerReady }
+                            });
+                        }
+                        
+                        // Hide placeholder and show controls
+                        if (playerPlaceholder) {
+                            playerPlaceholder.style.display = 'none';
+                        }
+                        
+                        // Show video controls toolbar
+                        if (videoControlsToolbar) {
+                            videoControlsToolbar.classList.remove('hidden');
+                        }
+                        
+                        // Update time displays
+                        if (toolbarStartTime) toolbarStartTime.textContent = formatTime(tempStartTime);
+                        if (toolbarEndTime) toolbarEndTime.textContent = formatTime(tempEndTime);
+                        
+                        // Render notes
+                        renderCurrentVideoNotes();
+                        renderAllNotesSidebar();
+                        
+                        showToast('Previous session restored!', 'success');
+                    }
+                }
+            } catch (error) {
+                console.error('Error restoring page state:', error);
+            }
+        }
+
         // Helper and UI Functions
         function resetNoteTaker() {
             noteText.value = '';
@@ -1715,10 +1823,10 @@
             const playerState = player.getPlayerState();
             if (playerState === 1) { // Playing
                 toolbarPlayPause.innerHTML = '⏸️ Pause';
-                toolbarPlayPause.className = 'bg-yellow-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-yellow-600 transition';
+                toolbarPlayPause.className = 'bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs transition';
             } else { // Paused, ended, or buffering
                 toolbarPlayPause.innerHTML = '▶️ Play';
-                toolbarPlayPause.className = 'bg-green-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-600 transition';
+                toolbarPlayPause.className = 'bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs transition';
             }
         }
 
