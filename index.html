@@ -289,9 +289,10 @@
 
         // Check authentication on load
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('📱 DOM loaded, initializing application...');
-            
-            // Initialize DOM elements
+            try {
+                console.log('📱 DOM loaded, initializing application...');
+                
+                // Initialize DOM elements
             authModal = document.getElementById('auth-modal');
             loginForm = document.getElementById('login-form');
             registerForm = document.getElementById('register-form');
@@ -327,8 +328,6 @@
             // Add event listeners
             if (loadVideoBtn) loadVideoBtn.addEventListener('click', handleLoadVideo);
             if (urlInput) urlInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleLoadVideo());
-            if (setStartTimeBtn) setStartTimeBtn.addEventListener('click', () => setTime('start'));
-            if (setEndTimeBtn) setEndTimeBtn.addEventListener('click', () => setTime('end'));
             if (addNoteBtn) addNoteBtn.addEventListener('click', handleAddNote);
             if (stopLoopingBtn) stopLoopingBtn.addEventListener('click', stopLoop);
             
@@ -379,51 +378,74 @@
             
             console.log('✅ DOM elements initialized, checking authentication...');
             checkAuth();
+            } catch (error) {
+                console.error('❌ Error during initialization:', error);
+                // Show error message to user
+                if (toast) {
+                    showToast('Error initializing application. Please refresh the page.', 'error');
+                }
+            }
         });
 
         // Authentication functions
         function checkAuth() {
-            if (USE_CLOUD) {
-                // Check cloud token
-                const token = localStorage.getItem('cloudToken');
-                if (token) {
-                    currentUser = JSON.parse(localStorage.getItem('cloudUser'));
-                    hideAuthModal();
-                    loadUserNotes();
+            try {
+                if (USE_CLOUD) {
+                    // Check cloud token
+                    const token = localStorage.getItem('cloudToken');
+                    if (token) {
+                        currentUser = JSON.parse(localStorage.getItem('cloudUser'));
+                        hideAuthModal();
+                        loadUserNotes();
+                    } else {
+                        showAuthModal();
+                    }
                 } else {
-                    showAuthModal();
+                    // Check localStorage
+                    const user = localStorage.getItem('currentUser');
+                    if (user) {
+                        currentUser = JSON.parse(user);
+                        hideAuthModal();
+                        loadUserNotes();
+                    } else {
+                        showAuthModal();
+                    }
                 }
-            } else {
-                // Check localStorage
-                const user = localStorage.getItem('currentUser');
-                if (user) {
-                    currentUser = JSON.parse(user);
-                    hideAuthModal();
-                    loadUserNotes();
-                } else {
-                    showAuthModal();
-                }
+            } catch (error) {
+                console.error('❌ Error during authentication check:', error);
+                // Fallback to showing auth modal
+                showAuthModal();
             }
         }
 
         function showAuthModal() {
-            authModal.classList.remove('hidden');
-            userInfo.classList.add('hidden');
-            // Show login button when showing auth modal
-            if (document.getElementById('login-btn')) {
-                document.getElementById('login-btn').classList.remove('hidden');
+            try {
+                if (authModal) authModal.classList.remove('hidden');
+                if (userInfo) userInfo.classList.add('hidden');
+                // Show login button when showing auth modal
+                if (document.getElementById('login-btn')) {
+                    document.getElementById('login-btn').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('❌ Error showing auth modal:', error);
             }
         }
 
         function hideAuthModal() {
-            authModal.classList.add('hidden');
-            userInfo.classList.remove('hidden');
-            // Hide login button when user is logged in
-            if (document.getElementById('login-btn')) {
-                document.getElementById('login-btn').classList.add('hidden');
+            try {
+                if (authModal) authModal.classList.add('hidden');
+                if (userInfo) userInfo.classList.remove('hidden');
+                // Hide login button when user is logged in
+                if (document.getElementById('login-btn')) {
+                    document.getElementById('login-btn').classList.add('hidden');
+                }
+                if (usernameDisplay && currentUser) {
+                    usernameDisplay.textContent = currentUser.username;
+                }
+                updateUserProfile();
+            } catch (error) {
+                console.error('❌ Error hiding auth modal:', error);
             }
-            usernameDisplay.textContent = currentUser.username;
-            updateUserProfile();
         }
         
         // Sidebar toggle function
