@@ -503,9 +503,14 @@
                             <div class="bg-white border border-gray-200 rounded-lg p-4 h-fit">
                                 <div class="flex justify-between items-center mb-3">
                                     <h3 class="text-lg font-semibold text-gray-800">Current Video Notes</h3>
-                                    <button onclick="debugRefreshNotes()" class="text-xs bg-gray-500 text-white px-2 py-1 rounded hover:bg-gray-600 transition" title="Debug: Refresh notes display">
-                                        🔄 Debug
-                                    </button>
+                                    <div class="flex space-x-2">
+                                        <button onclick="debugRefreshNotes()" class="text-xs bg-gray-500 text-white px-2 py-1 rounded hover:bg-gray-600 transition" title="Debug: Refresh notes display">
+                                            🔄 Debug
+                                        </button>
+                                        <button onclick="debugNotesState()" class="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition" title="Debug: Check notes state">
+                                            📊 State
+                                        </button>
+                                    </div>
                                 </div>
                                 <div id="current-video-notes" class="space-y-3 max-h-[600px] overflow-y-auto">
                                     <p class="text-gray-500 text-center py-8">No video loaded</p>
@@ -1604,6 +1609,8 @@
                 const videoTitle = videoNotes[0].videoTitle;
                 const noteCount = videoNotes.length;
                 
+                console.log(`📊 Rendering video group: ${videoId} with ${noteCount} notes`);
+                
                 sidebarHTML += `
                     <div class="bg-gray-50 p-3 rounded-lg border">
                         <h4 class="font-semibold text-sm text-gray-800 mb-2">${escapeHTML(videoTitle)}</h4>
@@ -1719,6 +1726,29 @@
                     console.log('✅ Manually set notes array');
                     renderCurrentVideoNotes();
                 }
+            }
+        }
+        
+        // Debug function to check current notes state
+        window.debugNotesState = function() {
+            console.log('🔍 Debug: Current notes state');
+            console.log('allNotes:', allNotes);
+            console.log('notes:', notes);
+            console.log('currentVideoId:', currentVideoId);
+            
+            if (allNotes && allNotes.length > 0) {
+                console.log('📊 Notes by video:');
+                const videoGroups = {};
+                allNotes.forEach(note => {
+                    if (!videoGroups[note.videoId]) {
+                        videoGroups[note.videoId] = [];
+                    }
+                    videoGroups[note.videoId].push(note);
+                });
+                
+                Object.entries(videoGroups).forEach(([videoId, videoNotes]) => {
+                    console.log(`  ${videoId}: ${videoNotes.length} notes`);
+                });
             }
         }
 
@@ -1904,8 +1934,13 @@
                         const initialNotesCount = notes.length;
                         const initialAllNotesCount = allNotes.length;
                         
-                        notes = notes.filter(note => note.id !== noteId);
-                        allNotes = allNotes.filter(note => note.id !== noteId);
+                        console.log('🔍 Before deletion - searching for note with ID:', noteId);
+                        console.log('📝 Notes array before deletion:', notes.map(n => ({ id: n.id, _id: n._id, videoId: n.videoId })));
+                        console.log('📊 AllNotes array before deletion:', allNotes.map(n => ({ id: n.id, _id: n._id, videoId: n.videoId })));
+                        
+                        // Try multiple ID fields for compatibility
+                        notes = notes.filter(note => note.id !== noteId && note._id !== noteId);
+                        allNotes = allNotes.filter(note => note.id !== noteId && note._id !== noteId);
                         
                         console.log(`Note deletion: Removed note ${noteId}`);
                         console.log(`Notes: ${initialNotesCount} → ${notes.length}`);
@@ -1915,6 +1950,19 @@
                         renderCurrentVideoNotes();
                         renderAllNotesSidebar();
                         updateUserProfile();
+                        
+                        // Check if current video still has notes
+                        if (currentVideoId) {
+                            const remainingNotes = allNotes.filter(note => note.videoId === currentVideoId);
+                            console.log(`📊 After deletion: ${remainingNotes.length} notes remaining for current video ${currentVideoId}`);
+                        }
+                        
+                        // Force a small delay to ensure DOM updates are processed
+                        setTimeout(() => {
+                            console.log('🔄 Force refreshing displays after deletion...');
+                            renderAllNotesSidebar();
+                            updateUserProfile();
+                        }, 100);
                         
                         // Save current page state
                         savePageState();
@@ -1928,8 +1976,13 @@
                 const initialNotesCount = notes.length;
                 const initialAllNotesCount = allNotes.length;
                 
-                notes = notes.filter(note => note.id !== noteId);
-                allNotes = allNotes.filter(note => note.id !== noteId);
+                console.log('🔍 Before deletion (localStorage) - searching for note with ID:', noteId);
+                console.log('📝 Notes array before deletion:', notes.map(n => ({ id: n.id, _id: n._id, videoId: n.videoId })));
+                console.log('📊 AllNotes array before deletion:', allNotes.map(n => ({ id: n.id, _id: n._id, videoId: n.videoId })));
+                
+                // Try multiple ID fields for compatibility
+                notes = notes.filter(note => note.id !== noteId && note._id !== noteId);
+                allNotes = allNotes.filter(note => note.id !== noteId && note._id !== noteId);
                 
                 console.log(`Note deletion (localStorage): Removed note ${noteId}`);
                 console.log(`Notes: ${initialNotesCount} → ${notes.length}`);
@@ -1937,13 +1990,26 @@
                 
                 // Update localStorage
                 const userNotes = JSON.parse(localStorage.getItem(`notes_${currentUser.id}`) || '[]');
-                const updatedNotes = userNotes.filter(note => note.id !== noteId);
+                const updatedNotes = userNotes.filter(note => note.id !== noteId && note._id !== noteId);
                 localStorage.setItem(`notes_${currentUser.id}`, JSON.stringify(updatedNotes));
                 
                 // Update displays
                 renderCurrentVideoNotes();
                 renderAllNotesSidebar();
                 updateUserProfile();
+                
+                // Check if current video still has notes
+                if (currentVideoId) {
+                    const remainingNotes = allNotes.filter(note => note.videoId === currentVideoId);
+                    console.log(`📊 After deletion (localStorage): ${remainingNotes.length} notes remaining for current video ${currentVideoId}`);
+                }
+                
+                // Force a small delay to ensure DOM updates are processed
+                setTimeout(() => {
+                    console.log('🔄 Force refreshing displays after deletion (localStorage)...');
+                    renderAllNotesSidebar();
+                    updateUserProfile();
+                }, 100);
                 
                 // Save current page state
                 savePageState();
