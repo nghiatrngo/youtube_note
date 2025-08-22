@@ -31,7 +31,7 @@ A web-based tool that lets you load a YouTube video, take timestamped notes, and
 
 Visit the live application: [YouTube Note Clipper](https://nghiatrngo.github.io/youtube_note/)
 
-**Note**: GitHub Pages needs to be enabled first. See setup instructions below.
+**Note**: This is a private repository. Only people with the direct link can access the live demo.
 
 ## 📱 Browser Compatibility
 
