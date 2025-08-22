@@ -501,12 +501,7 @@
 
                         <!-- Current Video Notes -->
                             <div class="bg-white border border-gray-200 rounded-lg p-4 h-fit">
-                                <h3 class="text-lg font-semibold mb-3 text-gray-800">
-                    Current Video Notes
-                    <button onclick="debugEditIssue()" class="ml-2 text-xs bg-red-100 text-red-700 py-1 px-2 rounded hover:bg-red-200 transition">
-                        🐛 Debug Edit
-                    </button>
-                </h3>
+                                <h3 class="text-lg font-semibold mb-3 text-gray-800">Current Video Notes</h3>
                                 <div id="current-video-notes" class="space-y-3 max-h-[600px] overflow-y-auto">
                                     <p class="text-gray-500 text-center py-8">No video loaded</p>
                                 </div>
@@ -1412,7 +1407,7 @@
             
             let notesHTML = '';
             notes.forEach((note, index) => {
-                const noteId = getNoteId(note);
+                const noteId = NoteIdManager.getPrimaryId(note);
                 console.log(`Rendering note ${index}:`, note);
                 console.log(`📝 Note ID for rendering: ${noteId}`);
                 console.log(`🔍 Note object details:`, {
@@ -1788,12 +1783,54 @@
             }
         }
         
-        // Helper function to get consistent note ID
+        // Unified ID handling system - eliminates all id/_id compatibility issues
+        const NoteIdManager = {
+            // Get the primary ID from a note object (prefer _id, fallback to id)
+            getPrimaryId: function(note) {
+                if (!note) return null;
+                return note._id || note.id || null;
+            },
+            
+            // Check if two IDs match (handles string/number conversion)
+            idsMatch: function(id1, id2) {
+                if (id1 === id2) return true;
+                if (id1 == id2) return true; // Loose equality for string/number
+                if (String(id1) === String(id2)) return true;
+                if (Number(id1) === Number(id2)) return true;
+                return false;
+            },
+            
+            // Find a note by ID in any array
+            findNoteById: function(noteId, notesArray) {
+                if (!noteId || !notesArray || !Array.isArray(notesArray)) return null;
+                return notesArray.find(note => this.idsMatch(this.getPrimaryId(note), noteId));
+            },
+            
+            // Find notes by ID in multiple arrays
+            findNoteInArrays: function(noteId, ...arrays) {
+                for (const array of arrays) {
+                    if (array && Array.isArray(array)) {
+                        const note = this.findNoteById(noteId, array);
+                        if (note) return note;
+                    }
+                }
+                return null;
+            },
+            
+            // Normalize ID for consistent comparison
+            normalizeId: function(id) {
+                if (id === null || id === undefined) return null;
+                // Try to convert to number first, then string
+                const numId = Number(id);
+                if (!isNaN(numId) && isFinite(numId)) return numId;
+                return String(id);
+            }
+        };
+        
+        // Legacy compatibility function (deprecated - use NoteIdManager instead)
         function getNoteId(note) {
-            const noteId = note._id || note.id;
-            console.log('🔍 getNoteId called with note:', note);
-            console.log('🔍 Returning noteId:', noteId);
-            return noteId;
+            console.warn('⚠️ getNoteId is deprecated. Use NoteIdManager.getPrimaryId() instead.');
+            return NoteIdManager.getPrimaryId(note);
         }
         
         // Debug function to test note editing functionality
@@ -1859,43 +1896,25 @@
                 return;
             }
             
-            // Convert noteId to both string and number for comparison
-            const noteIdStr = String(noteId);
-            const noteIdNum = Number(noteId);
+            console.log('🔍 Using NoteIdManager to find note with ID:', noteId);
             
-            console.log('🔍 Converting noteId for comparison:', {
-                original: noteId,
-                asString: noteIdStr,
-                asNumber: noteIdNum
-            });
+            // Use the unified ID manager to find the note
+            let note = NoteIdManager.findNoteInArrays(noteId, notes, allNotes);
             
-            // Debug: Check all notes for this ID with proper type conversion
-            const allNotesWithId = allNotes.filter(n => 
-                String(n.id) === noteIdStr || String(n._id) === noteIdStr ||
-                Number(n.id) === noteIdNum || Number(n._id) === noteIdNum
-            );
-            const notesWithId = notes.filter(n => 
-                String(n.id) === noteIdStr || String(n._id) === noteIdStr ||
-                Number(n.id) === noteIdNum || Number(n._id) === noteIdNum
-            );
-            
-            console.log('🔍 Found in allNotes:', allNotesWithId);
-            console.log('🔍 Found in notes:', notesWithId);
-            
-            // Try to find the note in both arrays with proper type conversion
-            let note = notes.find(n => 
-                String(n.id) === noteIdStr || String(n._id) === noteIdStr ||
-                Number(n.id) === noteIdNum || Number(n._id) === noteIdNum
-            );
-            if (!note && allNotes.length > 0) {
-                note = allNotes.find(n => 
-                    String(n.id) === noteIdStr || String(n._id) === noteIdStr ||
-                    Number(n.id) === noteIdNum || Number(n._id) === noteIdNum
-                );
-                if (note) {
-                    console.log('✅ Found note in allNotes, adding to current notes');
+            if (note) {
+                console.log('✅ Note found using NoteIdManager:', {
+                    id: note.id,
+                    _id: note._id,
+                    text: note.text
+                });
+                
+                // If note was found in allNotes but not in notes, add it
+                if (!notes.includes(note)) {
+                    console.log('✅ Adding note from allNotes to current notes');
                     notes.push(note);
                 }
+            } else {
+                console.log('❌ Note not found using NoteIdManager');
             }
             
             if (!note) {
@@ -1965,8 +1984,8 @@
                 noteText.classList.remove('hidden');
                 noteEdit.classList.add('hidden');
                 
-                // Reset the form inputs to original values with ID compatibility
-                const note = notes.find(n => n.id === noteId || n._id === noteId);
+                // Reset the form inputs to original values using NoteIdManager
+                const note = NoteIdManager.findNoteById(noteId, notes);
                 if (note) {
                     const startTimeInput = noteEdit.querySelector('input[name="startTime"]');
                     const endTimeInput = noteEdit.querySelector('input[name="endTime"]');
@@ -2051,26 +2070,13 @@
                         return;
                     }
                     
-                    // Convert noteId to both string and number for comparison (same logic as editNote)
-                    const noteIdStr = String(noteId);
-                    const noteIdNum = Number(noteId);
-                    
-                    // Find the note to get the correct ID format with proper type conversion
-                    const note = notes.find(n => 
-                        String(n.id) === noteIdStr || String(n._id) === noteIdStr ||
-                        Number(n.id) === noteIdNum || Number(n._id) === noteIdNum
-                    );
-                    const allNote = allNotes.find(n => 
-                        String(n.id) === noteIdStr || String(n._id) === noteIdStr ||
-                        Number(n.id) === noteIdNum || Number(n._id) === noteIdNum
-                    );
+                    // Use the unified ID manager to find the note
+                    const note = NoteIdManager.findNoteInArrays(noteId, notes, allNotes);
                     
                     if (!note) {
                         console.error('❌ Note not found for editing:', noteId);
                         console.log('🔍 Search details:', {
                             noteId,
-                            noteIdStr,
-                            noteIdNum,
                             availableIds: notes.map(n => ({ id: n.id, _id: n._id }))
                         });
                         showToast('Note not found for editing', 'error');
@@ -2223,9 +2229,9 @@
                         console.log('📝 Notes array before deletion:', notes.map(n => ({ id: n.id, _id: n._id, videoId: n.videoId })));
                         console.log('📊 AllNotes array before deletion:', allNotes.map(n => ({ id: n.id, _id: n._id, videoId: n.videoId })));
                         
-                        // Try multiple ID fields for compatibility
-                        notes = notes.filter(note => note.id !== noteId && note._id !== noteId);
-                        allNotes = allNotes.filter(note => note.id !== noteId && note._id !== noteId);
+                        // Use NoteIdManager for consistent ID handling
+                        notes = notes.filter(note => !NoteIdManager.idsMatch(NoteIdManager.getPrimaryId(note), noteId));
+                        allNotes = allNotes.filter(note => !NoteIdManager.idsMatch(NoteIdManager.getPrimaryId(note), noteId));
                         
                         console.log(`Note deletion: Removed note ${noteId}`);
                         console.log(`Notes: ${initialNotesCount} → ${notes.length}`);
@@ -2265,9 +2271,9 @@
                 console.log('📝 Notes array before deletion:', notes.map(n => ({ id: n.id, _id: n._id, videoId: n.videoId })));
                 console.log('📊 AllNotes array before deletion:', allNotes.map(n => ({ id: n.id, _id: n._id, videoId: n.videoId })));
                 
-                // Try multiple ID fields for compatibility
-                notes = notes.filter(note => note.id !== noteId && note._id !== noteId);
-                allNotes = allNotes.filter(note => note.id !== noteId && note._id !== noteId);
+                // Use NoteIdManager for consistent ID handling
+                notes = notes.filter(note => !NoteIdManager.idsMatch(NoteIdManager.getPrimaryId(note), noteId));
+                allNotes = allNotes.filter(note => !NoteIdManager.idsMatch(NoteIdManager.getPrimaryId(note), noteId));
                 
                 console.log(`Note deletion (localStorage): Removed note ${noteId}`);
                 console.log(`Notes: ${initialNotesCount} → ${notes.length}`);
@@ -2275,7 +2281,7 @@
                 
                 // Update localStorage
                 const userNotes = JSON.parse(localStorage.getItem(`notes_${currentUser.id}`) || '[]');
-                const updatedNotes = userNotes.filter(note => note.id !== noteId && note._id !== noteId);
+                const updatedNotes = userNotes.filter(note => !NoteIdManager.idsMatch(NoteIdManager.getPrimaryId(note), noteId));
                 localStorage.setItem(`notes_${currentUser.id}`, JSON.stringify(updatedNotes));
                 
                 // Update displays
