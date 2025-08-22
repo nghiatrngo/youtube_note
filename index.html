@@ -1367,6 +1367,9 @@
                             <button onclick="seekToTime(${note.startTime})" class="text-xs bg-blue-100 text-blue-700 py-1 px-2 rounded hover:bg-blue-200 transition">
                                 Go to Start
                             </button>
+                            <button onclick="stopLoop()" class="text-xs bg-red-100 text-red-700 py-1 px-2 rounded hover:bg-red-200 transition hidden" id="stop-loop-${note.id}">
+                                Stop Loop
+                            </button>
                             <button onclick="playClip(${note.startTime}, ${note.endTime}, '${note.id}')" class="text-xs bg-green-100 text-green-700 py-1 px-2 rounded hover:bg-green-200 transition">
                                 Play Clip
                             </button>
