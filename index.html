@@ -292,7 +292,7 @@
         let userInfo, usernameDisplay, urlInput, loadVideoBtn, noteTaker;
         let addNoteBtn, noteText, stopLoopingBtn, loopingStatus, playerPlaceholder, toast;
         let sidebarToggle, sidebar, mainContent;
-        let urlInputSection, videoToolbar, toolbarLoadVideo, toolbarSetStart, toolbarSetEnd;
+        let urlInputSection, videoToolbar, videoControlsToolbar, toolbarLoadVideo, toolbarSetStart, toolbarSetEnd;
         let toolbarStartTime, toolbarEndTime, toolbarStopLooping, toolbarLoopingStatus;
         let toolbarPlayPause, toolbarFrameBack, toolbarFrameForward;
 
@@ -302,98 +302,98 @@
                 console.log('📱 DOM loaded, initializing application...');
                 
                 // Initialize DOM elements
-            authModal = document.getElementById('auth-modal');
-            loginForm = document.getElementById('login-form');
-            registerForm = document.getElementById('register-form');
-            showRegisterBtn = document.getElementById('show-register');
-            showLoginBtn = document.getElementById('show-login');
-            logoutBtn = document.getElementById('logout-btn');
-            userInfo = document.getElementById('user-info');
-            usernameDisplay = document.getElementById('username-display');
-            urlInput = document.getElementById('youtube-url');
-            loadVideoBtn = document.getElementById('load-video');
-            noteTaker = document.getElementById('note-taker');
-            addNoteBtn = document.getElementById('add-note');
-            noteText = document.getElementById('note-text');
-            stopLoopingBtn = document.getElementById('stop-looping');
-            loopingStatus = document.getElementById('looping-status');
-            playerPlaceholder = document.getElementById('player-placeholder');
-            toast = document.getElementById('toast');
-            sidebarToggle = document.getElementById('sidebar-toggle');
-            sidebar = document.getElementById('sidebar');
-            mainContent = document.querySelector('.flex-1');
+                authModal = document.getElementById('auth-modal');
+                loginForm = document.getElementById('login-form');
+                registerForm = document.getElementById('register-form');
+                showRegisterBtn = document.getElementById('show-register');
+                showLoginBtn = document.getElementById('show-login');
+                logoutBtn = document.getElementById('logout-btn');
+                userInfo = document.getElementById('user-info');
+                usernameDisplay = document.getElementById('username-display');
+                urlInput = document.getElementById('youtube-url');
+                loadVideoBtn = document.getElementById('load-video');
+                noteTaker = document.getElementById('note-taker');
+                addNoteBtn = document.getElementById('add-note');
+                noteText = document.getElementById('note-text');
+                stopLoopingBtn = document.getElementById('stop-looping');
+                loopingStatus = document.getElementById('looping-status');
+                playerPlaceholder = document.getElementById('player-placeholder');
+                toast = document.getElementById('toast');
+                sidebarToggle = document.getElementById('sidebar-toggle');
+                sidebar = document.getElementById('sidebar');
+                mainContent = document.querySelector('.flex-1');
             
-            // Toolbar elements
-            urlInputSection = document.getElementById('url-input-section');
-            videoControlsToolbar = document.getElementById('video-controls-toolbar');
-            toolbarLoadVideo = document.getElementById('toolbar-load-video');
-            toolbarSetStart = document.getElementById('toolbar-set-start');
-            toolbarSetEnd = document.getElementById('toolbar-set-end');
-            toolbarStartTime = document.getElementById('toolbar-start-time');
-            toolbarEndTime = document.getElementById('toolbar-end-time');
-            toolbarStopLooping = document.getElementById('toolbar-stop-looping');
-            toolbarLoopingStatus = document.getElementById('toolbar-looping-status');
-            toolbarPlayPause = document.getElementById('toolbar-play-pause');
-            toolbarFrameBack = document.getElementById('toolbar-frame-back');
-            toolbarFrameForward = document.getElementById('toolbar-frame-forward');
+                // Toolbar elements
+                urlInputSection = document.getElementById('url-input-section');
+                videoControlsToolbar = document.getElementById('video-controls-toolbar');
+                toolbarLoadVideo = document.getElementById('toolbar-load-video');
+                toolbarSetStart = document.getElementById('toolbar-set-start');
+                toolbarSetEnd = document.getElementById('toolbar-set-end');
+                toolbarStartTime = document.getElementById('toolbar-start-time');
+                toolbarEndTime = document.getElementById('toolbar-end-time');
+                toolbarStopLooping = document.getElementById('toolbar-stop-looping');
+                toolbarLoopingStatus = document.getElementById('toolbar-looping-status');
+                toolbarPlayPause = document.getElementById('toolbar-play-pause');
+                toolbarFrameBack = document.getElementById('toolbar-frame-back');
+                toolbarFrameForward = document.getElementById('toolbar-frame-forward');
             
-            // Add event listeners
-            if (loadVideoBtn) loadVideoBtn.addEventListener('click', handleLoadVideo);
-            if (urlInput) urlInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleLoadVideo());
-            if (stopLoopingBtn) stopLoopingBtn.addEventListener('click', stopLoop);
+                // Add event listeners
+                if (loadVideoBtn) loadVideoBtn.addEventListener('click', handleLoadVideo);
+                if (urlInput) urlInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleLoadVideo());
+                if (stopLoopingBtn) stopLoopingBtn.addEventListener('click', stopLoop);
 
-        // Authentication event listeners
-            if (showRegisterBtn) showRegisterBtn.addEventListener('click', () => {
-            loginForm.classList.add('hidden');
-            registerForm.classList.remove('hidden');
-        });
-
-            if (showLoginBtn) showLoginBtn.addEventListener('click', () => {
-            registerForm.classList.add('hidden');
-            loginForm.classList.remove('hidden');
-        });
-
-            if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
-
-        // Form submissions
-            if (loginForm) loginForm.addEventListener('submit', handleLogin);
-            if (registerForm) registerForm.addEventListener('submit', handleRegister);
-            
-            // Sidebar toggle
-            if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);
-            
-            // Toolbar event listeners
-            if (toolbarLoadVideo) toolbarLoadVideo.addEventListener('click', toggleUrlInput);
-            if (toolbarSetStart) toolbarSetStart.addEventListener('click', () => setTime('start'));
-            if (toolbarSetEnd) toolbarSetEnd.addEventListener('click', () => setTime('end'));
-            if (toolbarStopLooping) toolbarStopLooping.addEventListener('click', stopLoop);
-            if (toolbarPlayPause) toolbarPlayPause.addEventListener('click', togglePlayPause);
-            if (toolbarFrameBack) toolbarFrameBack.addEventListener('click', () => seekFrame(-1));
-            if (toolbarFrameForward) toolbarFrameForward.addEventListener('click', () => seekFrame(1));
-            
-            // Note taking event listeners
-            if (addNoteBtn) {
-                console.log('✅ Add note button found, adding event listener');
-                addNoteBtn.addEventListener('click', handleAddNote);
-            } else {
-                console.log('❌ Add note button not found');
-            }
-            
-            // Load video button event listener
-            const loadVideoBtn = document.getElementById('load-video-btn');
-            if (loadVideoBtn) {
-                loadVideoBtn.addEventListener('click', handleLoadVideo);
-            }
-            
-            // URL input enter key event listener
-            const urlInput = document.getElementById('url-input');
-            if (urlInput) {
-                urlInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        handleLoadVideo();
-                    }
+                // Authentication event listeners
+                if (showRegisterBtn) showRegisterBtn.addEventListener('click', () => {
+                    loginForm.classList.add('hidden');
+                    registerForm.classList.remove('hidden');
                 });
-            }
+
+                if (showLoginBtn) showLoginBtn.addEventListener('click', () => {
+                    registerForm.classList.add('hidden');
+                    loginForm.classList.remove('hidden');
+                });
+
+                if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+
+                // Form submissions
+                if (loginForm) loginForm.addEventListener('submit', handleLogin);
+                if (registerForm) registerForm.addEventListener('submit', handleRegister);
+                
+                // Sidebar toggle
+                if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);
+                
+                // Toolbar event listeners
+                if (toolbarLoadVideo) toolbarLoadVideo.addEventListener('click', toggleUrlInput);
+                if (toolbarSetStart) toolbarSetStart.addEventListener('click', () => setTime('start'));
+                if (toolbarSetEnd) toolbarSetEnd.addEventListener('click', () => setTime('end'));
+                if (toolbarStopLooping) toolbarStopLooping.addEventListener('click', stopLoop);
+                if (toolbarPlayPause) toolbarPlayPause.addEventListener('click', togglePlayPause);
+                if (toolbarFrameBack) toolbarFrameBack.addEventListener('click', () => seekFrame(-1));
+                if (toolbarFrameForward) toolbarFrameForward.addEventListener('click', () => seekFrame(1));
+                
+                // Note taking event listeners
+                if (addNoteBtn) {
+                    console.log('✅ Add note button found, adding event listener');
+                    addNoteBtn.addEventListener('click', handleAddNote);
+                } else {
+                    console.log('❌ Add note button not found');
+                }
+                
+                // Load video button event listener (header)
+                const headerLoadVideoBtn = document.getElementById('load-video-btn');
+                if (headerLoadVideoBtn) {
+                    headerLoadVideoBtn.addEventListener('click', handleLoadVideo);
+                }
+                
+                // URL input enter key event listener (header)
+                const headerUrlInput = document.getElementById('url-input');
+                if (headerUrlInput) {
+                    headerUrlInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            handleLoadVideo();
+                        }
+                    });
+                }
             
             // Login button event listener
             const loginBtn = document.getElementById('login-btn');
@@ -796,7 +796,7 @@
                 console.log('Could not fetch video title, using fallback');
             }
             
-                    return `Video ${videoId}`;
+            return `Video ${videoId}`;
         }
 
         // Load video notes
@@ -839,16 +839,16 @@
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     
-                                    if (response.ok) {
-                    const data = await response.json();
-                    notes = data.notes || [];
-                    console.log('✅ Cloud notes loaded:', notes.length, 'notes');
-                    renderCurrentVideoNotes();
-                } else {
-                    console.log('❌ Failed to fetch cloud notes:', response.status);
-                    notes = [];
-                    renderCurrentVideoNotes();
-                }
+                    if (response.ok) {
+                        const data = await response.json();
+                        notes = data.notes || [];
+                        console.log('✅ Cloud notes loaded:', notes.length, 'notes');
+                        renderCurrentVideoNotes();
+                    } else {
+                        console.log('❌ Failed to fetch cloud notes:', response.status);
+                        notes = [];
+                        renderCurrentVideoNotes();
+                    }
                 } else {
                     // localStorage fallback
                     const userNotes = JSON.parse(localStorage.getItem(`notes_${user.id}`) || '[]');
