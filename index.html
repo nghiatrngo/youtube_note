@@ -1738,18 +1738,19 @@
                             allNote.endTime = newEndTime;
                         }
                         
+                        // Refresh notes from server to ensure consistency
+                        if (currentVideoId) {
+                            await loadVideoNotes(currentVideoId);
+                        }
+                        
                         // Update displays
                         renderCurrentVideoNotes();
                         renderAllNotesSidebar();
+                        updateUserProfile();
                         showToast('Note updated successfully!', 'success');
                         
-                        // Refresh the displays to show all updates
-                        setTimeout(() => {
-                            // Refresh current video notes and sidebar without page reload
-                            renderCurrentVideoNotes();
-                            renderAllNotesSidebar();
-                            showToast('Note updated and displays refreshed!', 'success');
-                        }, 500);
+                        // Save current page state
+                        savePageState();
                     } else {
                         const errorData = await response.json().catch(() => ({}));
                         console.error('Server error:', errorData);
@@ -1784,15 +1785,11 @@
                     // Update displays
                     renderCurrentVideoNotes();
                     renderAllNotesSidebar();
+                    updateUserProfile();
                     showToast('Note updated successfully!', 'success');
                     
-                    // Refresh the displays to show all updates
-                    setTimeout(() => {
-                        // Refresh current video notes and sidebar without page reload
-                        renderCurrentVideoNotes();
-                        renderAllNotesSidebar();
-                        showToast('Note updated and displays refreshed!', 'success');
-                    }, 500);
+                    // Save current page state
+                    savePageState();
                 }
             } catch (error) {
                 console.error('Error updating note:', error);
