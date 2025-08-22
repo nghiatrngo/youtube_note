@@ -74,10 +74,18 @@
                 </button>
                 <h1 class="text-lg font-bold text-gray-800">YouTube Note Clipper</h1>
                 
-                <!-- Load New Video Button -->
-                <button id="toolbar-load-video" class="bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700 transition">
-                    Load Video
-                </button>
+                <!-- Load Video Section -->
+                <div class="flex items-center space-x-2">
+                    <button id="toolbar-load-video" class="bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700 transition">
+                        Load Video
+                    </button>
+                    <div id="url-input-section" class="hidden">
+                        <input type="text" id="url-input" placeholder="Paste YouTube URL here..." class="px-3 py-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-64">
+                        <button id="load-video-btn" class="ml-2 bg-green-500 text-white px-3 py-1.5 rounded text-sm hover:bg-green-600 transition">
+                            Load
+                        </button>
+                    </div>
+                </div>
             </div>
             
             <!-- Video Controls Toolbar -->
@@ -355,7 +363,7 @@
             if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);
             
             // Toolbar event listeners
-            if (toolbarLoadVideo) toolbarLoadVideo.addEventListener('click', showUrlInput);
+            if (toolbarLoadVideo) toolbarLoadVideo.addEventListener('click', toggleUrlInput);
             if (toolbarSetStart) toolbarSetStart.addEventListener('click', () => setTime('start'));
             if (toolbarSetEnd) toolbarSetEnd.addEventListener('click', () => setTime('end'));
             if (toolbarStopLooping) toolbarStopLooping.addEventListener('click', stopLoop);
@@ -369,6 +377,22 @@
                 addNoteBtn.addEventListener('click', handleAddNote);
             } else {
                 console.log('❌ Add note button not found');
+            }
+            
+            // Load video button event listener
+            const loadVideoBtn = document.getElementById('load-video-btn');
+            if (loadVideoBtn) {
+                loadVideoBtn.addEventListener('click', handleLoadVideo);
+            }
+            
+            // URL input enter key event listener
+            const urlInput = document.getElementById('url-input');
+            if (urlInput) {
+                urlInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        handleLoadVideo();
+                    }
+                });
             }
             
             // Login button event listener
@@ -489,6 +513,32 @@
                 if (urlInput) urlInput.value = '';
                 // Focus on URL input
                 if (urlInput) urlInput.focus();
+            }
+        }
+        
+        // Toggle URL input section
+        function toggleUrlInput() {
+            const urlInputSection = document.getElementById('url-input-section');
+            const urlInput = document.getElementById('url-input');
+            
+            if (urlInputSection) {
+                if (urlInputSection.classList.contains('hidden')) {
+                    // Show URL input
+                    urlInputSection.classList.remove('hidden');
+                    if (urlInput) {
+                        urlInput.focus();
+                        urlInput.select();
+                    }
+                } else {
+                    // Hide URL input if empty
+                    if (urlInput && urlInput.value.trim() === '') {
+                        urlInputSection.classList.add('hidden');
+                    } else {
+                        // If not empty, just clear the input
+                        urlInput.value = '';
+                        urlInput.focus();
+                    }
+                }
             }
         }
         
@@ -658,6 +708,12 @@
 
         // Load video function
         async function handleLoadVideo() {
+            const urlInput = document.getElementById('url-input');
+            if (!urlInput) {
+                showToast('URL input not found', 'error');
+                return;
+            }
+            
             const videoId = getYouTubeVideoId(urlInput.value);
             if (!videoId) {
                 showToast('Please enter a valid YouTube URL', 'error');
@@ -706,6 +762,17 @@
             
             // Show toolbar after video loads
             showToolbar();
+            
+            // Hide URL input section after successful load
+            const urlInputSection = document.getElementById('url-input-section');
+            if (urlInputSection) {
+                urlInputSection.classList.add('hidden');
+            }
+            
+            // Clear the URL input
+            if (urlInput) {
+                urlInput.value = '';
+            }
         }
 
         // Enhanced video title fetching
