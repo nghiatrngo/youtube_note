@@ -314,6 +314,65 @@ app.get('/api/notes/video/:videoId', authenticateToken, async (req, res) => {
     }
 });
 
+// Update note
+app.put('/api/notes/:id', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.userId;
+        const { text, startTime, endTime } = req.body;
+
+        // Validate required fields
+        if (!text || text.trim() === '') {
+            return res.status(400).json({ message: 'Note text is required' });
+        }
+
+        if (typeof startTime !== 'number' || typeof endTime !== 'number') {
+            return res.status(400).json({ message: 'Start time and end time must be numbers' });
+        }
+
+        if (startTime >= endTime) {
+            return res.status(400).json({ message: 'End time must be greater than start time' });
+        }
+
+        // Update the note
+        const { data: note, error } = await supabase
+            .from('notes')
+            .update({
+                text: text.trim(),
+                start_time: startTime,
+                end_time: endTime
+            })
+            .eq('id', id)
+            .eq('user_id', userId)
+            .select('*')
+            .single();
+
+        if (error) {
+            throw error;
+        }
+
+        if (!note) {
+            return res.status(404).json({ message: 'Note not found' });
+        }
+
+        const formattedNote = {
+            id: note.id,
+            videoId: note.video_id,
+            videoTitle: note.video_title,
+            startTime: note.start_time,
+            endTime: note.end_time,
+            text: note.text,
+            userId: note.user_id,
+            createdAt: note.created_at
+        };
+
+        res.json({ message: 'Note updated successfully', note: formattedNote });
+    } catch (error) {
+        console.error('Update note error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
 // Delete note
 app.delete('/api/notes/:id', authenticateToken, async (req, res) => {
     try {
