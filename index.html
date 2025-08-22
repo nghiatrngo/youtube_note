@@ -897,12 +897,24 @@
             let notesHTML = '';
             notes.forEach((note, index) => {
                 notesHTML += `
-                    <div class="bg-gray-50 p-3 rounded-lg border">
+                    <div class="bg-gray-50 p-3 rounded-lg border" data-note-id="${note.id}">
                         <div class="flex justify-between items-start mb-2">
                             <span class="font-mono text-sm text-blue-600">${formatTime(note.startTime)} → ${formatTime(note.endTime)}</span>
-                            <button onclick="deleteNote('${note.id}')" class="text-red-500 hover:text-red-700 text-sm">×</button>
+                            <div class="flex space-x-2">
+                                <button onclick="editNote('${note.id}')" class="text-blue-500 hover:text-blue-700 text-sm">✏️</button>
+                                <button onclick="deleteNote('${note.id}')" class="text-red-500 hover:text-red-700 text-sm">×</button>
+                            </div>
                         </div>
-                        <p class="text-gray-700 text-sm">${escapeHTML(note.text)}</p>
+                        <div class="note-content">
+                            <p class="text-gray-700 text-sm note-text" data-note-id="${note.id}">${escapeHTML(note.text)}</p>
+                            <div class="note-edit hidden" data-note-id="${note.id}">
+                                <textarea class="w-full p-2 border border-gray-300 rounded text-sm" rows="2">${escapeHTML(note.text)}</textarea>
+                                <div class="flex space-x-2 mt-2">
+                                    <button onclick="saveNoteEdit('${note.id}')" class="text-xs bg-green-500 text-white py-1 px-2 rounded hover:bg-green-600 transition">Save</button>
+                                    <button onclick="cancelNoteEdit('${note.id}')" class="text-xs bg-gray-500 text-white py-1 px-2 rounded hover:bg-gray-600 transition">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
                         <div class="flex space-x-2 mt-2">
                             <button onclick="seekToTime(${note.startTime})" class="text-xs bg-blue-100 text-blue-700 py-1 px-2 rounded hover:bg-blue-200 transition">
                                 Go to Start
@@ -1155,6 +1167,100 @@
             showToast(`Video loaded: ${currentVideoTitle}`, 'success');
         }
 
+        // Note editing functions
+        function editNote(noteId) {
+            const noteText = document.querySelector(`.note-text[data-note-id="${noteId}"]`);
+            const noteEdit = document.querySelector(`.note-edit[data-note-id="${noteId}"]`);
+            
+            if (noteText && noteEdit) {
+                noteText.classList.add('hidden');
+                noteEdit.classList.remove('hidden');
+                
+                // Focus on the textarea
+                const textarea = noteEdit.querySelector('textarea');
+                if (textarea) {
+                    textarea.focus();
+                    textarea.select();
+                }
+            }
+        }
+        
+        function cancelNoteEdit(noteId) {
+            const noteText = document.querySelector(`.note-text[data-note-id="${noteId}"]`);
+            const noteEdit = document.querySelector(`.note-edit[data-note-id="${noteId}"]`);
+            
+            if (noteText && noteEdit) {
+                noteText.classList.remove('hidden');
+                noteEdit.classList.add('hidden');
+            }
+        }
+        
+        async function saveNoteEdit(noteId) {
+            const noteEdit = document.querySelector(`.note-edit[data-note-id="${noteId}"]`);
+            const textarea = noteEdit?.querySelector('textarea');
+            
+            if (!textarea) return;
+            
+            const newText = textarea.value.trim();
+            if (!newText) {
+                showToast('Note text cannot be empty', 'error');
+                return;
+            }
+            
+            try {
+                if (USE_CLOUD) {
+                    const token = localStorage.getItem('cloudToken');
+                    const response = await fetch(`${API_BASE}/notes/${noteId}`, {
+                        method: 'PUT',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ text: newText })
+                    });
+                    
+                    if (response.ok) {
+                        // Update local note
+                        const note = notes.find(n => n.id === noteId);
+                        if (note) note.text = newText;
+                        
+                        const allNote = allNotes.find(n => n.id === noteId);
+                        if (allNote) allNote.text = newText;
+                        
+                        // Update displays
+                        renderCurrentVideoNotes();
+                        renderAllNotesSidebar();
+                        showToast('Note updated successfully!', 'success');
+                    } else {
+                        showToast('Failed to update note', 'error');
+                    }
+                } else {
+                    // localStorage fallback
+                    const note = notes.find(n => n.id === noteId);
+                    if (note) note.text = newText;
+                    
+                    const allNote = allNotes.find(n => n.id === noteId);
+                    if (allNote) allNote.text = newText;
+                    
+                    // Update localStorage
+                    const userNotes = JSON.parse(localStorage.getItem(`notes_${currentUser.id}`) || '[]');
+                    const noteIndex = userNotes.findIndex(n => n.id === noteId);
+                    if (noteIndex !== -1) {
+                        userNotes[noteIndex].text = newText;
+                        localStorage.setItem(`notes_${currentUser.id}`, JSON.stringify(userNotes));
+                    }
+                    
+                    // Update displays
+                    renderCurrentVideoNotes();
+                    renderAllNotesSidebar();
+                    showToast('Note updated successfully!', 'success');
+                }
+            } catch (error) {
+                console.error('Error updating note:', error);
+                showToast('Failed to update note. Please try again.', 'error');
+            }
+        }
+        
         // Delete note function
         async function deleteNote(noteId) {
             if (!currentUser) {
@@ -1348,6 +1454,13 @@
                 return;
             }
             
+            // Pause video first for precise frame navigation
+            if (player.getPlayerState() === 1) { // If playing
+                player.pauseVideo();
+                // Update play/pause button state
+                updatePlayPauseButton();
+            }
+            
             // YouTube videos are typically 30fps, so 1 frame = 1/30 second
             const frameTime = 1/30;
             const currentTime = player.getCurrentTime();
@@ -1362,7 +1475,7 @@
             
             // Show feedback
             const frameText = direction > 0 ? '+1 frame' : '-1 frame';
-            showToast(`Seeked ${frameText}`, 'info');
+            showToast(`Paused and seeked ${frameText}`, 'info');
         }
         
         // Helper and UI Functions
