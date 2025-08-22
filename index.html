@@ -1118,7 +1118,12 @@
             // Hide auth modal and show login button
             hideAuthModal();
             
-            showToast('Logged out successfully. Page reset to initial state.', 'info');
+            showToast('Logged out successfully. Refreshing page to ensure clean state...', 'info');
+            
+            // Refresh the page after a short delay to ensure complete reset
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
         }
 
         // Core utility functions
