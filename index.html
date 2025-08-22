@@ -132,36 +132,152 @@
             --accent-hover: #7c3aed;
         }
         
-        /* Apply theme variables */
+        /* Apply theme variables to entire page */
         body {
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
+            background-color: var(--bg-primary) !important;
+            color: var(--text-primary) !important;
         }
         
         header {
-            background-color: var(--bg-secondary);
-            border-color: var(--border-color);
+            background-color: var(--bg-secondary) !important;
+            border-color: var(--border-color) !important;
         }
         
         #sidebar {
-            background-color: var(--bg-sidebar);
-            border-color: var(--border-color);
+            background-color: var(--bg-sidebar) !important;
+            border-color: var(--border-color) !important;
         }
         
-        .bg-white {
-            background-color: var(--bg-secondary);
+        /* Override Tailwind classes with theme variables */
+        .bg-white, .bg-gray-100 {
+            background-color: var(--bg-secondary) !important;
         }
         
-        .text-gray-800 {
-            color: var(--text-primary);
+        .bg-gray-50 {
+            background-color: var(--bg-primary) !important;
         }
         
-        .text-gray-600 {
-            color: var(--text-secondary);
+        .text-gray-800, .text-gray-900 {
+            color: var(--text-primary) !important;
         }
         
-        .border-gray-200 {
-            border-color: var(--border-color);
+        .text-gray-600, .text-gray-700 {
+            color: var(--text-secondary) !important;
+        }
+        
+        .text-gray-500 {
+            color: var(--text-secondary) !important;
+        }
+        
+        .border-gray-200, .border-gray-300 {
+            border-color: var(--border-color) !important;
+        }
+        
+        /* Theme-specific button colors */
+        .bg-blue-600 {
+            background-color: var(--accent-color) !important;
+        }
+        
+        .hover\:bg-blue-700:hover {
+            background-color: var(--accent-hover) !important;
+        }
+        
+        /* Modal and form styling */
+        #auth-modal .bg-white {
+            background-color: var(--bg-secondary) !important;
+        }
+        
+        #auth-modal .text-gray-700 {
+            color: var(--text-primary) !important;
+        }
+        
+        #auth-modal .border-gray-300 {
+            border-color: var(--border-color) !important;
+        }
+        
+        /* Input fields */
+        input, textarea {
+            background-color: var(--bg-secondary) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
+        }
+        
+        /* Focus states */
+        input:focus, textarea:focus {
+            border-color: var(--accent-color) !important;
+            ring-color: var(--accent-color) !important;
+        }
+        
+        /* Toast notifications */
+        #toast {
+            background-color: var(--accent-color) !important;
+        }
+        
+        /* Video controls toolbar */
+        #video-controls-toolbar {
+            background-color: var(--bg-secondary) !important;
+        }
+        
+        /* Main content area */
+        main {
+            background-color: var(--bg-secondary) !important;
+        }
+        
+        /* Note cards and containers */
+        .bg-white.border {
+            background-color: var(--bg-secondary) !important;
+            border-color: var(--border-color) !important;
+        }
+        
+        /* User profile section */
+        .bg-gradient-to-r {
+            background: linear-gradient(to right, var(--accent-color), var(--accent-hover)) !important;
+        }
+        
+        /* Additional theme overrides for complete coverage */
+        .bg-gray-100 {
+            background-color: var(--bg-primary) !important;
+        }
+        
+        .bg-gray-200 {
+            background-color: var(--bg-secondary) !important;
+        }
+        
+        .text-gray-400 {
+            color: var(--text-secondary) !important;
+        }
+        
+        .text-gray-300 {
+            color: var(--text-secondary) !important;
+        }
+        
+        /* Button hover states */
+        .hover\:bg-gray-100:hover {
+            background-color: var(--bg-primary) !important;
+        }
+        
+        .hover\:bg-gray-200:hover {
+            background-color: var(--bg-secondary) !important;
+        }
+        
+        /* Shadow and border utilities */
+        .shadow-sm, .shadow-lg {
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        /* Ensure video player container maintains black background */
+        #player-container {
+            background-color: #000000 !important;
+        }
+        
+        /* Theme dropdown styling */
+        #theme-dropdown {
+            background-color: var(--bg-secondary) !important;
+            border-color: var(--border-color) !important;
+        }
+        
+        #theme-dropdown .theme-option:hover {
+            background-color: var(--bg-primary) !important;
         }
     </style>
 </head>
