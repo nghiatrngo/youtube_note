@@ -501,7 +501,12 @@
 
                         <!-- Current Video Notes -->
                             <div class="bg-white border border-gray-200 rounded-lg p-4 h-fit">
-                                <h3 class="text-lg font-semibold mb-3 text-gray-800">Current Video Notes</h3>
+                                <div class="flex justify-between items-center mb-3">
+                                    <h3 class="text-lg font-semibold text-gray-800">Current Video Notes</h3>
+                                    <button onclick="debugRefreshNotes()" class="text-xs bg-gray-500 text-white px-2 py-1 rounded hover:bg-gray-600 transition" title="Debug: Refresh notes display">
+                                        🔄 Debug
+                                    </button>
+                                </div>
                                 <div id="current-video-notes" class="space-y-3 max-h-[600px] overflow-y-auto">
                                     <p class="text-gray-500 text-center py-8">No video loaded</p>
                                 </div>
@@ -1217,22 +1222,42 @@
                         const data = await response.json();
                         notes = data.notes || [];
                         console.log('✅ Cloud notes loaded:', notes.length, 'notes');
+                        console.log('📝 Notes data structure:', notes);
+                        console.log('🔍 Looking for videoId:', videoId);
+                        console.log('📊 allNotes length:', allNotes ? allNotes.length : 'undefined');
                         renderCurrentVideoNotes();
                     } else {
                         console.log('❌ Failed to fetch cloud notes:', response.status);
-                        notes = [];
+                        // Fallback to using existing allNotes if available
+                        if (allNotes && allNotes.length > 0) {
+                            console.log('🔍 allNotes available, filtering for videoId:', videoId);
+                            console.log('📊 allNotes sample:', allNotes.slice(0, 2));
+                            notes = allNotes.filter(note => note.videoId === videoId);
+                            console.log('✅ Using existing allNotes as fallback:', notes.length, 'notes');
+                        } else {
+                            console.log('❌ No allNotes available for fallback');
+                            notes = [];
+                        }
                         renderCurrentVideoNotes();
                     }
                 } else {
                     // localStorage fallback
                     const userNotes = JSON.parse(localStorage.getItem(`notes_${user.id}`) || '[]');
+                    console.log('🔍 localStorage userNotes:', userNotes.length, 'total notes');
+                    console.log('🔍 Filtering for videoId:', videoId);
                     notes = userNotes.filter(note => note.videoId === videoId);
                     console.log('✅ localStorage notes loaded:', notes.length, 'notes for video', videoId);
                     renderCurrentVideoNotes();
                 }
             } catch (error) {
                 console.error('Failed to load video notes:', error);
-                notes = [];
+                // Fallback to using existing allNotes if available
+                if (allNotes && allNotes.length > 0) {
+                    notes = allNotes.filter(note => note.videoId === videoId);
+                    console.log('✅ Using existing allNotes as fallback after error:', notes.length, 'notes');
+                } else {
+                    notes = [];
+                }
                 renderCurrentVideoNotes();
             }
         }
@@ -1276,7 +1301,12 @@
                     if (response.ok) {
                         const data = await response.json();
                         allNotes = data.notes || [];
-                        notes = allNotes.filter(note => note.videoId === currentVideoId);
+                        // Only filter notes if there's a current video selected
+                        if (currentVideoId) {
+                            notes = allNotes.filter(note => note.videoId === currentVideoId);
+                        } else {
+                            notes = []; // No video selected, so no notes to show
+                        }
                         renderCurrentVideoNotes();
                         renderAllNotesSidebar();
                         updateUserProfile();
@@ -1292,7 +1322,12 @@
                     // localStorage fallback
                     const userNotes = JSON.parse(localStorage.getItem(`notes_${currentUser.id}`) || '[]');
                     allNotes = userNotes;
-                    notes = allNotes.filter(note => note.videoId === currentVideoId);
+                    // Only filter notes if there's a current video selected
+                    if (currentVideoId) {
+                        notes = allNotes.filter(note => note.videoId === currentVideoId);
+                    } else {
+                        notes = []; // No video selected, so no notes to show
+                    }
                     renderCurrentVideoNotes();
                     renderAllNotesSidebar();
                     updateUserProfile();
@@ -1311,7 +1346,8 @@
         function renderCurrentVideoNotes() {
             console.log('🔍 renderCurrentVideoNotes called');
             console.log('currentVideoId:', currentVideoId);
-            console.log('notes:', notes);
+            console.log('notes array length:', notes ? notes.length : 'undefined');
+            console.log('notes array:', notes);
             console.log('currentUser:', currentUser);
             
             const container = document.getElementById('current-video-notes');
@@ -1328,6 +1364,15 @@
             
             if (notes.length === 0) {
                 console.log('❌ No notes found for video:', currentVideoId);
+                console.log('🔍 Checking allNotes for this video...');
+                if (allNotes && allNotes.length > 0) {
+                    const availableNotes = allNotes.filter(note => note.videoId === currentVideoId);
+                    console.log('📊 Found', availableNotes.length, 'notes in allNotes for video', currentVideoId);
+                    if (availableNotes.length > 0) {
+                        console.log('⚠️ Notes exist in allNotes but not in notes array - this is a bug!');
+                        console.log('📝 Available notes:', availableNotes);
+                    }
+                }
                 container.innerHTML = '<p class="text-gray-500 text-center py-8">No notes for this video yet</p>';
                 return;
             }
@@ -1530,6 +1575,10 @@
 
         // Render all notes sidebar
         function renderAllNotesSidebar() {
+            console.log('🔍 renderAllNotesSidebar called');
+            console.log('allNotes length:', allNotes.length);
+            console.log('allNotes sample:', allNotes.slice(0, 2));
+            
             const container = document.getElementById('all-notes-sidebar');
             if (!container) return;
             
@@ -1540,12 +1589,15 @@
             
             // Group notes by video
             const videoGroups = {};
+            console.log('🔍 Grouping notes by video...');
             allNotes.forEach(note => {
+                console.log('📝 Processing note:', { videoId: note.videoId, title: note.videoTitle });
                 if (!videoGroups[note.videoId]) {
                     videoGroups[note.videoId] = [];
                 }
                 videoGroups[note.videoId].push(note);
             });
+            console.log('📊 Video groups created:', Object.keys(videoGroups));
             
             let sidebarHTML = '';
             Object.entries(videoGroups).forEach(([videoId, videoNotes]) => {
@@ -1590,8 +1642,21 @@
                 console.log('Fetched video title:', currentVideoTitle);
             }
             
-            // Load notes for this video
-            await loadVideoNotes(videoId);
+            // Check if notes are already available in allNotes
+            if (allNotes && allNotes.length > 0) {
+                const existingNotes = allNotes.filter(note => note.videoId === videoId);
+                if (existingNotes.length > 0) {
+                    notes = existingNotes;
+                    console.log('✅ Using existing notes from allNotes:', notes.length, 'notes');
+                    renderCurrentVideoNotes();
+                } else {
+                    // Load notes for this video if not found in allNotes
+                    await loadVideoNotes(videoId);
+                }
+            } else {
+                // Load notes for this video
+                await loadVideoNotes(videoId);
+            }
             
             // Reset note input only (don't hide video controls)
             if (noteText) noteText.value = '';
@@ -1637,6 +1702,24 @@
             savePageState();
             
             showToast(`Video loaded: ${currentVideoTitle}`, 'success');
+        }
+
+        // Debug function to manually refresh notes display
+        window.debugRefreshNotes = function() {
+            console.log('🔍 Debug: Manually refreshing notes display');
+            console.log('currentVideoId:', currentVideoId);
+            console.log('allNotes length:', allNotes ? allNotes.length : 'undefined');
+            console.log('notes length:', notes ? notes.length : 'undefined');
+            
+            if (currentVideoId && allNotes && allNotes.length > 0) {
+                const availableNotes = allNotes.filter(note => note.videoId === currentVideoId);
+                console.log('📊 Available notes for current video:', availableNotes.length);
+                if (availableNotes.length > 0) {
+                    notes = availableNotes;
+                    console.log('✅ Manually set notes array');
+                    renderCurrentVideoNotes();
+                }
+            }
         }
 
         // Note editing functions
@@ -2166,6 +2249,12 @@
                         // Update time displays
                         if (toolbarStartTime) toolbarStartTime.textContent = formatTime(tempStartTime);
                         if (toolbarEndTime) toolbarEndTime.textContent = formatTime(tempEndTime);
+                        
+                        // Ensure notes are properly filtered for current video
+                        if (state.currentVideoId && allNotes.length > 0) {
+                            notes = allNotes.filter(note => note.videoId === state.currentVideoId);
+                            console.log('✅ Restored notes filtered for video:', state.currentVideoId, 'Found:', notes.length, 'notes');
+                        }
                         
                         // Render notes
                         renderCurrentVideoNotes();
