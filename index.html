@@ -326,6 +326,24 @@
             scrollbar-width: thin;
             scrollbar-color: #cbd5e1 #f1f5f9;
         }
+        
+        /* Ensure note preview view has proper height */
+        #note-preview-view {
+            height: 100%;
+            min-height: 0;
+        }
+        
+        #note-preview-view .bg-white {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #all-notes-preview {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body class="bg-gray-100 h-screen">
@@ -575,8 +593,8 @@
                     </div>
                     
                     <!-- Note-Preview View -->
-                    <div id="note-preview-view" class="hidden h-full flex flex-col">
-                        <div class="bg-white border border-gray-200 rounded-lg p-6 flex-1 flex flex-col min-h-0">
+                    <div id="note-preview-view" class="hidden">
+                        <div class="bg-white border border-gray-200 rounded-lg p-6 h-full flex flex-col">
                             <div class="flex items-center justify-between mb-6 flex-shrink-0">
                                 <h3 class="text-2xl font-bold text-gray-800">All Notes Preview</h3>
                                 <div class="flex items-center space-x-3">
@@ -609,7 +627,7 @@
                             </div>
                             
                             <!-- Scrollable Notes Container -->
-                            <div id="all-notes-preview" class="space-y-4 flex-1 overflow-y-auto min-h-0 pr-2">
+                            <div id="all-notes-preview" class="space-y-4 overflow-y-auto flex-1 min-h-0 pr-2" style="max-height: calc(100vh - 300px);">
                                 <!-- Notes will be populated here -->
                             </div>
                         </div>
