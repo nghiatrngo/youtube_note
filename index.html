@@ -612,7 +612,7 @@
                 if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);
                 
                 // Toolbar event listeners
-                if (toolbarLoadVideo) toolbarLoadVideo.addEventListener('click', toggleUrlInput);
+                if (toolbarLoadVideo) toolbarLoadVideo.addEventListener('click', handleLoadVideo);
                 if (toolbarSetStart) toolbarSetStart.addEventListener('click', () => setTime('start'));
                 if (toolbarSetEnd) toolbarSetEnd.addEventListener('click', () => setTime('end'));
                 if (toolbarStopLooping) toolbarStopLooping.addEventListener('click', stopLoop);
@@ -810,28 +810,7 @@
         
 
         
-        // Toggle URL input section
-        function toggleUrlInput() {
-            const url = prompt('Enter YouTube URL:');
-            if (url && url.trim()) {
-                // Create a temporary input element to use the existing handleLoadVideo logic
-                const tempInput = document.createElement('input');
-                tempInput.value = url.trim();
-                tempInput.id = 'temp-url-input';
-                document.body.appendChild(tempInput);
-                
-                // Call handleLoadVideo with the temporary input
-                const originalUrlInput = document.getElementById('url-input');
-                if (originalUrlInput) {
-                    originalUrlInput.value = url.trim();
-                }
-                
-                handleLoadVideo();
-                
-                // Clean up temporary input
-                document.body.removeChild(tempInput);
-            }
-        }
+
         
         // Theme functions
         function toggleThemeDropdown() {
@@ -1036,20 +1015,13 @@
 
         // Load video function
         async function handleLoadVideo() {
-            let urlInput = document.getElementById('url-input');
-            
-            // If no URL input element exists, try to get the URL from the prompt
-            if (!urlInput) {
-                const url = prompt('Enter YouTube URL:');
-                if (!url || !url.trim()) {
-                    return;
-                }
-                // Create a temporary input element
-                urlInput = document.createElement('input');
-                urlInput.value = url.trim();
+            // Get URL from prompt since we don't have a permanent input field
+            const url = prompt('Enter YouTube URL:');
+            if (!url || !url.trim()) {
+                return;
             }
             
-            const videoId = getYouTubeVideoId(urlInput.value);
+            const videoId = getYouTubeVideoId(url.trim());
             if (!videoId) {
                 showToast('Please enter a valid YouTube URL', 'error');
                 return;
@@ -1100,10 +1072,7 @@
                 videoControlsToolbar.classList.remove('hidden');
             }
             
-            // Clear the URL input if it exists
-            if (urlInput && urlInput.id !== 'temp-url-input') {
-                urlInput.value = '';
-            }
+            // No URL input to clear since we use prompt
             
             // Save current page state
             savePageState();
