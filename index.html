@@ -296,6 +296,7 @@
                 
                 <!-- Load Video Section -->
                 <div class="flex items-center space-x-2">
+                    <input type="text" id="url-input" placeholder="Paste YouTube URL here..." class="px-3 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" style="min-width: 300px;">
                     <button id="toolbar-load-video" class="bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700 transition">
                         Load Video
                     </button>
@@ -537,7 +538,7 @@
         let userInfo, usernameDisplay, noteTaker;
         let addNoteBtn, noteText, stopLoopingBtn, loopingStatus, playerPlaceholder, toast;
         let sidebarToggle, sidebar, mainContent;
-        let videoToolbar, videoControlsToolbar, toolbarLoadVideo, toolbarSetStart, toolbarSetEnd;
+        let videoToolbar, videoControlsToolbar, toolbarLoadVideo, urlInput, toolbarSetStart, toolbarSetEnd;
         let toolbarStartTime, toolbarEndTime, toolbarStopLooping, toolbarLoopingStatus;
         let toolbarPlayPause, toolbarFrameBack, toolbarFrameForward, toolbarSpeed50, toolbarSpeed150;
         let themeSelector, themeDropdown;
@@ -576,6 +577,7 @@
                 // Toolbar elements
                 videoControlsToolbar = document.getElementById('video-controls-toolbar');
                 toolbarLoadVideo = document.getElementById('toolbar-load-video');
+                urlInput = document.getElementById('url-input');
                 toolbarSetStart = document.getElementById('toolbar-set-start');
                 toolbarSetEnd = document.getElementById('toolbar-set-end');
                 toolbarStartTime = document.getElementById('toolbar-start-time');
@@ -613,6 +615,15 @@
                 
                 // Toolbar event listeners
                 if (toolbarLoadVideo) toolbarLoadVideo.addEventListener('click', handleLoadVideo);
+                
+                // URL input event listeners
+                if (urlInput) {
+                    urlInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            handleLoadVideo();
+                        }
+                    });
+                }
                 if (toolbarSetStart) toolbarSetStart.addEventListener('click', () => setTime('start'));
                 if (toolbarSetEnd) toolbarSetEnd.addEventListener('click', () => setTime('end'));
                 if (toolbarStopLooping) toolbarStopLooping.addEventListener('click', stopLoop);
@@ -620,39 +631,27 @@
                 if (toolbarFrameBack) toolbarFrameBack.addEventListener('click', () => seekFrame(-1));
                 if (toolbarFrameForward) toolbarFrameForward.addEventListener('click', () => seekFrame(1));
                 if (toolbarSpeed50) {
-                    let clickCount = 0;
-                    let clickTimer = null;
-                    
+                    let isActive = false;
                     toolbarSpeed50.addEventListener('click', () => {
-                        clickCount++;
-                        if (clickCount === 1) {
-                            clickTimer = setTimeout(() => {
-                                setPlaybackSpeed(0.5);
-                                clickCount = 0;
-                            }, 300);
-                        } else if (clickCount === 2) {
-                            clearTimeout(clickTimer);
+                        if (!isActive) {
+                            setPlaybackSpeed(0.5);
+                            isActive = true;
+                        } else {
                             setPlaybackSpeed(1.0);
-                            clickCount = 0;
+                            isActive = false;
                         }
                     });
                 }
                 
                 if (toolbarSpeed150) {
-                    let clickCount = 0;
-                    let clickTimer = null;
-                    
+                    let isActive = false;
                     toolbarSpeed150.addEventListener('click', () => {
-                        clickCount++;
-                        if (clickCount === 1) {
-                            clickTimer = setTimeout(() => {
-                                setPlaybackSpeed(1.5);
-                                clickCount = 0;
-                            }, 300);
-                        } else if (clickCount === 2) {
-                            clearTimeout(clickTimer);
+                        if (!isActive) {
+                            setPlaybackSpeed(1.5);
+                            isActive = true;
+                        } else {
                             setPlaybackSpeed(1.0);
-                            clickCount = 0;
+                            isActive = false;
                         }
                     });
                 }
@@ -1015,13 +1014,13 @@
 
         // Load video function
         async function handleLoadVideo() {
-            // Get URL from prompt since we don't have a permanent input field
-            const url = prompt('Enter YouTube URL:');
-            if (!url || !url.trim()) {
+            const urlInput = document.getElementById('url-input');
+            if (!urlInput || !urlInput.value.trim()) {
+                showToast('Please enter a YouTube URL', 'error');
                 return;
             }
             
-            const videoId = getYouTubeVideoId(url.trim());
+            const videoId = getYouTubeVideoId(urlInput.value.trim());
             if (!videoId) {
                 showToast('Please enter a valid YouTube URL', 'error');
                 return;
@@ -1072,7 +1071,10 @@
                 videoControlsToolbar.classList.remove('hidden');
             }
             
-            // No URL input to clear since we use prompt
+            // Clear the URL input after loading
+            if (urlInput) {
+                urlInput.value = '';
+            }
             
             // Save current page state
             savePageState();
