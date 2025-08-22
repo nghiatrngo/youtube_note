@@ -899,19 +899,29 @@
                 notesHTML += `
                     <div class="bg-gray-50 p-3 rounded-lg border" data-note-id="${note.id}">
                         <div class="flex justify-between items-start mb-2">
-                            <span class="font-mono text-sm text-blue-600">${formatTime(note.startTime)} → ${formatTime(note.endTime)}</span>
-                            <div class="flex space-x-2">
-                                <button onclick="editNote('${note.id}')" class="text-blue-500 hover:text-blue-700 text-sm">✏️</button>
-                                <button onclick="deleteNote('${note.id}')" class="text-red-500 hover:text-red-700 text-sm">×</button>
-                            </div>
+                            <span class="font-mono text-sm text-blue-600 note-time-display" data-note-id="${note.id}">${formatTime(note.startTime)} → ${formatTime(note.endTime)}</span>
+                            <button onclick="deleteNote('${note.id}')" class="text-red-500 hover:text-red-700 text-sm">×</button>
                         </div>
                         <div class="note-content">
                             <p class="text-gray-700 text-sm note-text" data-note-id="${note.id}">${escapeHTML(note.text)}</p>
                             <div class="note-edit hidden" data-note-id="${note.id}">
-                                <textarea class="w-full p-2 border border-gray-300 rounded text-sm" rows="2">${escapeHTML(note.text)}</textarea>
-                                <div class="flex space-x-2 mt-2">
-                                    <button onclick="saveNoteEdit('${note.id}')" class="text-xs bg-green-500 text-white py-1 px-2 rounded hover:bg-green-600 transition">Save</button>
-                                    <button onclick="cancelNoteEdit('${note.id}')" class="text-xs bg-gray-500 text-white py-1 px-2 rounded hover:bg-gray-600 transition">Cancel</button>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-xs text-gray-600 mb-1">Start Time (seconds)</label>
+                                        <input type="number" name="startTime" step="0.1" min="0" value="${note.startTime}" class="w-full p-2 border border-gray-300 rounded text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-600 mb-1">End Time (seconds)</label>
+                                        <input type="number" name="endTime" step="0.1" min="0" value="${note.endTime}" class="w-full p-2 border border-gray-300 rounded text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-600 mb-1">Note Text</label>
+                                        <textarea class="w-full p-2 border border-gray-300 rounded text-sm" rows="2">${escapeHTML(note.text)}</textarea>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <button onclick="saveNoteEdit('${note.id}')" class="text-xs bg-green-500 text-white py-1 px-2 rounded hover:bg-green-600 transition">Save</button>
+                                        <button onclick="cancelNoteEdit('${note.id}')" class="text-xs bg-gray-500 text-white py-1 px-2 rounded hover:bg-gray-600 transition">Cancel</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -921,6 +931,9 @@
                             </button>
                             <button onclick="playClip(${note.startTime}, ${note.endTime})" class="text-xs bg-green-100 text-green-700 py-1 px-2 rounded hover:bg-green-200 transition">
                                 Play Clip
+                            </button>
+                            <button onclick="editNote('${note.id}')" class="text-xs bg-yellow-100 text-yellow-700 py-1 px-2 rounded hover:bg-yellow-200 transition">
+                                Edit
                             </button>
                         </div>
                     </div>
@@ -1192,12 +1205,26 @@
             if (noteText && noteEdit) {
                 noteText.classList.remove('hidden');
                 noteEdit.classList.add('hidden');
+                
+                // Reset the form inputs to original values
+                const note = notes.find(n => n.id === noteId);
+                if (note) {
+                    const startTimeInput = noteEdit.querySelector('input[name="startTime"]');
+                    const endTimeInput = noteEdit.querySelector('input[name="endTime"]');
+                    const textarea = noteEdit.querySelector('textarea');
+                    
+                    if (startTimeInput) startTimeInput.value = note.startTime;
+                    if (endTimeInput) endTimeInput.value = note.endTime;
+                    if (textarea) textarea.value = note.text;
+                }
             }
         }
         
         async function saveNoteEdit(noteId) {
             const noteEdit = document.querySelector(`.note-edit[data-note-id="${noteId}"]`);
             const textarea = noteEdit?.querySelector('textarea');
+            const startTimeInput = noteEdit?.querySelector('input[name="startTime"]');
+            const endTimeInput = noteEdit?.querySelector('input[name="endTime"]');
             
             if (!textarea) return;
             
@@ -1205,6 +1232,20 @@
             if (!newText) {
                 showToast('Note text cannot be empty', 'error');
                 return;
+            }
+            
+            // Parse time inputs
+            let newStartTime = 0;
+            let newEndTime = 0;
+            
+            if (startTimeInput && endTimeInput) {
+                newStartTime = parseFloat(startTimeInput.value) || 0;
+                newEndTime = parseFloat(endTimeInput.value) || 0;
+                
+                if (newStartTime >= newEndTime) {
+                    showToast('End time must be greater than start time', 'error');
+                    return;
+                }
             }
             
             try {
@@ -1216,37 +1257,61 @@
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${token}`
                         },
-                        body: JSON.stringify({ text: newText })
+                        body: JSON.stringify({ 
+                            text: newText,
+                            startTime: newStartTime,
+                            endTime: newEndTime
+                        })
                     });
                     
                     if (response.ok) {
                         // Update local note
                         const note = notes.find(n => n.id === noteId);
-                        if (note) note.text = newText;
+                        if (note) {
+                            note.text = newText;
+                            note.startTime = newStartTime;
+                            note.endTime = newEndTime;
+                        }
                         
                         const allNote = allNotes.find(n => n.id === noteId);
-                        if (allNote) allNote.text = newText;
+                        if (allNote) {
+                            allNote.text = newText;
+                            allNote.startTime = newStartTime;
+                            allNote.endTime = newEndTime;
+                        }
                         
                         // Update displays
                         renderCurrentVideoNotes();
                         renderAllNotesSidebar();
                         showToast('Note updated successfully!', 'success');
                     } else {
-                        showToast('Failed to update note', 'error');
+                        const errorData = await response.json().catch(() => ({}));
+                        console.error('Server error:', errorData);
+                        showToast(`Failed to update note: ${errorData.message || 'Server error'}`, 'error');
                     }
                 } else {
                     // localStorage fallback
                     const note = notes.find(n => n.id === noteId);
-                    if (note) note.text = newText;
+                    if (note) {
+                        note.text = newText;
+                        note.startTime = newStartTime;
+                        note.endTime = newEndTime;
+                    }
                     
                     const allNote = allNotes.find(n => n.id === noteId);
-                    if (allNote) allNote.text = newText;
+                    if (allNote) {
+                        allNote.text = newText;
+                        allNote.startTime = newStartTime;
+                        allNote.endTime = newEndTime;
+                    }
                     
                     // Update localStorage
                     const userNotes = JSON.parse(localStorage.getItem(`notes_${currentUser.id}`) || '[]');
                     const noteIndex = userNotes.findIndex(n => n.id === noteId);
                     if (noteIndex !== -1) {
                         userNotes[noteIndex].text = newText;
+                        userNotes[noteIndex].startTime = newStartTime;
+                        userNotes[noteIndex].endTime = newEndTime;
                         localStorage.setItem(`notes_${currentUser.id}`, JSON.stringify(userNotes));
                     }
                     
