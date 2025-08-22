@@ -322,6 +322,9 @@
                         Set End
                     </button>
                     <div class="w-px h-6 bg-gray-300 mx-1"></div>
+                    <button id="toolbar-stop-looping" class="hidden bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs transition">
+                        Stop Loop
+                    </button>
                     <button id="toolbar-speed-50" class="bg-purple-500 hover:bg-purple-600 text-white px-2 py-1 rounded text-xs transition">
                         50%
                     </button>
@@ -1885,6 +1888,14 @@
                 loopingStatus.textContent = `(${formatTime(startTime)} → ${formatTime(endTime)})`;
             }
             
+            // Show stop loop button for specific note if noteId is provided
+            if (noteId) {
+                const stopLoopBtn = document.getElementById(`stop-loop-${noteId}`);
+                if (stopLoopBtn) {
+                    stopLoopBtn.classList.remove('hidden');
+                }
+            }
+            
             // Show toolbar stop looping button
             if (toolbarStopLooping) {
                 toolbarStopLooping.classList.remove('hidden');
@@ -1931,6 +1942,12 @@
             if (toolbarLoopingStatus) {
                 toolbarLoopingStatus.textContent = '';
             }
+            
+            // Hide all note-specific stop loop buttons
+            const allStopLoopBtns = document.querySelectorAll('[id^="stop-loop-"]');
+            allStopLoopBtns.forEach(btn => {
+                btn.classList.add('hidden');
+            });
         }
 
         // Set time functions
