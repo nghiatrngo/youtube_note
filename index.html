@@ -501,7 +501,12 @@
 
                         <!-- Current Video Notes -->
                             <div class="bg-white border border-gray-200 rounded-lg p-4 h-fit">
-                                <h3 class="text-lg font-semibold mb-3 text-gray-800">Current Video Notes</h3>
+                                <h3 class="text-lg font-semibold mb-3 text-gray-800">
+                    Current Video Notes
+                    <button onclick="debugEditIssue()" class="ml-2 text-xs bg-red-100 text-red-700 py-1 px-2 rounded hover:bg-red-200 transition">
+                        🐛 Debug Edit
+                    </button>
+                </h3>
                                 <div id="current-video-notes" class="space-y-3 max-h-[600px] overflow-y-auto">
                                     <p class="text-gray-500 text-center py-8">No video loaded</p>
                                 </div>
@@ -1829,23 +1834,48 @@
             console.log('🔍 Found in allNotes:', allNotesWithId);
             console.log('🔍 Found in notes:', notesWithId);
             
+            // Try to find the note in both arrays
+            let note = notes.find(n => n.id === noteId || n._id === noteId);
+            if (!note && allNotes.length > 0) {
+                note = allNotes.find(n => n.id === noteId || n._id === noteId);
+                if (note) {
+                    console.log('✅ Found note in allNotes, adding to current notes');
+                    notes.push(note);
+                }
+            }
+            
+            if (!note) {
+                console.error('❌ Note not found in any data for noteId:', noteId);
+                console.log('❌ Available note IDs in notes array:', notes.map(n => ({ id: n.id, _id: n._id })));
+                console.log('❌ Available note IDs in allNotes array:', allNotes.map(n => ({ id: n.id, _id: n._id })));
+                showToast('Note data not found', 'error');
+                return;
+            }
+            
             const noteText = document.querySelector(`.note-text[data-note-id="${noteId}"]`);
             const noteEdit = document.querySelector(`.note-edit[data-note-id="${noteId}"]`);
+            
+            console.log('🔍 DOM elements found:', {
+                noteText: !!noteText,
+                noteEdit: !!noteEdit,
+                noteTextSelector: `.note-text[data-note-id="${noteId}"]`,
+                noteEditSelector: `.note-edit[data-note-id="${noteId}"]`
+            });
             
             if (!noteText || !noteEdit) {
                 console.error('❌ Note elements not found for noteId:', noteId);
                 console.log('noteText found:', !!noteText);
                 console.log('noteEdit found:', !!noteEdit);
+                
+                // Debug: Check all elements with data-note-id
+                const allNoteElements = document.querySelectorAll('[data-note-id]');
+                console.log('🔍 All elements with data-note-id:', Array.from(allNoteElements).map(el => ({
+                    tagName: el.tagName,
+                    className: el.className,
+                    dataNoteId: el.getAttribute('data-note-id')
+                })));
+                
                 showToast('Note edit form not found', 'error');
-                return;
-            }
-            
-            // Verify the note exists in our data
-            const note = notes.find(n => n.id === noteId || n._id === noteId);
-            if (!note) {
-                console.error('❌ Note not found in data for noteId:', noteId);
-                console.log('❌ Available note IDs in notes array:', notes.map(n => ({ id: n.id, _id: n._id })));
-                showToast('Note data not found', 'error');
                 return;
             }
             
@@ -2600,10 +2630,12 @@
             toast.classList.remove('opacity-0', 'translate-y-2');
             toast.classList.add('opacity-100', 'translate-y-0');
 
+            // Make error messages last longer
+            const duration = type === 'error' ? 8000 : 3000;
             setTimeout(() => {
                 toast.classList.remove('opacity-100', 'translate-y-0');
                 toast.classList.add('opacity-0', 'translate-y-2');
-            }, 3000);
+            }, duration);
         }
 
         function escapeHTML(str) {
@@ -2653,6 +2685,41 @@
                 toolbarPlayPause.className = 'bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs transition';
             }
         }
+
+        // Debug function for edit issues
+        window.debugEditIssue = function() {
+            console.log('🐛 Debug Edit Issue');
+            console.log('📊 Current state:', {
+                currentVideoId,
+                notes: notes,
+                allNotes: allNotes,
+                notesLength: notes.length,
+                allNotesLength: allNotes.length
+            });
+            
+            // Check DOM elements
+            const noteElements = document.querySelectorAll('[data-note-id]');
+            console.log('🔍 DOM elements with data-note-id:', Array.from(noteElements).map(el => ({
+                tagName: el.tagName,
+                className: el.className,
+                dataNoteId: el.getAttribute('data-note-id')
+            })));
+            
+            // Check specific note elements
+            if (notes.length > 0) {
+                const firstNote = notes[0];
+                const noteId = firstNote._id || firstNote.id;
+                console.log('🔍 First note ID:', noteId);
+                
+                const noteText = document.querySelector(`.note-text[data-note-id="${noteId}"]`);
+                const noteEdit = document.querySelector(`.note-edit[data-note-id="${noteId}"]`);
+                
+                console.log('🔍 First note elements found:', {
+                    noteText: !!noteText,
+                    noteEdit: !!noteEdit
+                });
+            }
+        };
 
         console.log('✅ Cloud version JavaScript loaded successfully');
         console.log(`🌐 Using ${USE_CLOUD ? 'Cloud API' : 'localStorage'} for data storage`);
