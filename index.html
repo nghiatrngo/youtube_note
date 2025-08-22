@@ -1408,13 +1408,13 @@
                             <button onclick="seekToTime(${note.startTime})" class="text-xs bg-blue-100 text-blue-700 py-1 px-2 rounded hover:bg-blue-200 transition">
                                 Go to Start
                             </button>
-                            <button onclick="stopLoop()" class="text-xs bg-red-100 text-red-700 py-1 px-2 rounded hover:bg-red-200 transition hidden" id="stop-loop-${note.id}">
+                            <button onclick="stopLoop()" class="text-xs bg-red-100 text-red-700 py-1 px-2 rounded hover:bg-red-200 transition hidden" id="stop-loop-${note.id || note._id}">
                                 Stop Loop
                             </button>
-                            <button onclick="playClip(${note.startTime}, ${note.endTime}, '${note.id}')" class="text-xs bg-green-100 text-green-700 py-1 px-2 rounded hover:bg-green-200 transition">
+                            <button onclick="playClip(${note.startTime}, ${note.endTime}, '${note.id || note._id}')" class="text-xs bg-green-100 text-green-700 py-1 px-2 rounded hover:bg-green-200 transition">
                                 Play Clip
                             </button>
-                            <button onclick="editNote('${note.id}')" class="text-xs bg-yellow-100 text-yellow-700 py-1 px-2 rounded hover:bg-yellow-200 transition">
+                            <button onclick="editNote('${note.id || note._id}')" class="text-xs bg-yellow-100 text-yellow-700 py-1 px-2 rounded hover:bg-yellow-200 transition">
                                 Edit
                             </button>
                         </div>
@@ -1793,7 +1793,7 @@
         }
 
         // Note editing functions
-        function editNote(noteId) {
+        window.editNote = function(noteId) {
             console.log('🔍 editNote called with noteId:', noteId);
             
             if (!noteId) {
@@ -1843,7 +1843,7 @@
             }
         }
         
-        function cancelNoteEdit(noteId) {
+        window.cancelNoteEdit = function(noteId) {
             console.log('🔍 cancelNoteEdit called with noteId:', noteId);
             
             const noteText = document.querySelector(`.note-text[data-note-id="${noteId}"]`);
@@ -1873,7 +1873,7 @@
             }
         }
         
-        async function saveNoteEdit(noteId) {
+        window.saveNoteEdit = async function(noteId) {
             console.log('🔍 saveNoteEdit called with noteId:', noteId);
             
             const noteEdit = document.querySelector(`.note-edit[data-note-id="${noteId}"]`);
@@ -2069,7 +2069,7 @@
         }
         
         // Delete note function
-        async function deleteNote(noteId) {
+        window.deleteNote = async function(noteId) {
             console.log('🔍 deleteNote called with noteId:', noteId);
             console.log('Current user:', currentUser);
             
@@ -2180,14 +2180,14 @@
         }
 
         // Helper functions for video controls
-        function seekToTime(time) {
+        window.seekToTime = function(time) {
             if (player && typeof player.seekTo === 'function') {
                 player.seekTo(time);
                 showToast(`Seeking to ${formatTime(time)}`, 'info');
             }
         }
         
-        function playClip(startTime, endTime, noteId = null) {
+        window.playClip = function(startTime, endTime, noteId = null) {
             if (player && typeof player.seekTo === 'function') {
                 player.seekTo(startTime);
                 player.playVideo();
@@ -2199,7 +2199,7 @@
             }
         }
 
-        function startLoop(startTime, endTime, index, noteId = null) {
+        window.startLoop = function(startTime, endTime, index, noteId = null) {
             if (!player || typeof player.seekTo !== 'function') return;
             stopLoop();
             loopingNoteIndex = index;
@@ -2244,7 +2244,7 @@
             }, 250);
         }
 
-        function stopLoop() {
+        window.stopLoop = function() {
             if (loopInterval) {
                 clearInterval(loopInterval);
                 loopInterval = null;
