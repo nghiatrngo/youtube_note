@@ -1368,6 +1368,21 @@
             console.log('notes array:', notes);
             console.log('currentUser:', currentUser);
             
+            // Debug: Log the actual structure of each note
+            if (notes && notes.length > 0) {
+                console.log('🔍 Detailed notes structure:');
+                notes.forEach((note, index) => {
+                    console.log(`Note ${index}:`, {
+                        id: note.id,
+                        _id: note._id,
+                        text: note.text,
+                        videoId: note.videoId,
+                        startTime: note.startTime,
+                        endTime: note.endTime
+                    });
+                });
+            }
+            
             const container = document.getElementById('current-video-notes');
             if (!container) {
                 console.log('❌ current-video-notes container not found');
@@ -1775,7 +1790,10 @@
         
         // Helper function to get consistent note ID
         function getNoteId(note) {
-            return note._id || note.id;
+            const noteId = note._id || note.id;
+            console.log('🔍 getNoteId called with note:', note);
+            console.log('🔍 Returning noteId:', noteId);
+            return noteId;
         }
         
         // Debug function to test note editing functionality
