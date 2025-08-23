@@ -453,11 +453,32 @@
          }
          
          #sidebar.collapsed ~ .flex-1 #video-player-container {
-             grid-column: span 4 / span 4;
+             grid-column: span 3 / span 3;
+         }
+         
+         #sidebar.collapsed ~ .flex-1 #right-notes-sidebar {
+             grid-column: span 1 / span 1;
          }
          
          #sidebar.collapsed ~ .flex-1 #video-controls-toolbar {
              display: none !important;
+         }
+         
+         /* Ensure grid items stay in the same row */
+         #video-note-view {
+             display: grid;
+             grid-template-columns: 1fr;
+             grid-auto-flow: row;
+         }
+         
+         @media (min-width: 1280px) {
+             #video-note-view {
+                 grid-template-columns: 1fr 3fr 1fr;
+             }
+             
+             #sidebar.collapsed ~ .flex-1 #video-note-view {
+                 grid-template-columns: 40px 3fr 1fr;
+             }
          }
          
          /* Mobile responsive adjustments */
@@ -674,7 +695,7 @@
                     <!-- Video-Note View -->
                     <div id="video-note-view" class="grid grid-cols-1 xl:grid-cols-5 gap-0">
                     <!-- Left Video Controls Column (hidden by default, shown when sidebar collapsed) -->
-                    <div id="left-video-controls" class="xl:col-span-1 hidden">
+                    <div id="left-video-controls" class="xl:col-span-1 hidden" style="grid-column: 1;">
                         <div class="bg-gray-100 border border-gray-200 rounded-lg p-2 space-y-1">
                             <h4 class="text-xs font-semibold text-gray-700 text-center mb-1">Controls</h4>
                             <button id="left-toolbar-play-pause" class="w-6 h-6 bg-green-500 hover:bg-green-600 text-white rounded text-xs transition flex items-center justify-center">
@@ -705,7 +726,7 @@
                     </div>
                     
                     <!-- Video Player -->
-                    <div id="video-player-container" class="xl:col-span-3">
+                    <div id="video-player-container" class="xl:col-span-3" style="grid-column: 2;">
                         <!-- YouTube Player -->
                         <div id="player-container" class="bg-black rounded-lg overflow-hidden shadow-inner" style="aspect-ratio: 16/9;">
                              <div id="player-placeholder" class="w-full h-full flex items-center justify-center text-gray-400">
@@ -717,7 +738,7 @@
                     </div>
 
                     <!-- Right Sidebar with Note Input and Current Notes -->
-                    <div class="xl:col-span-1 space-y-4">
+                    <div class="xl:col-span-1 space-y-4" id="right-notes-sidebar" style="grid-column: 3;">
                         <!-- Note Input Area -->
                         <div class="bg-white border border-gray-200 rounded-lg p-4">
                             <div class="flex items-center justify-between mb-3">
