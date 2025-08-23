@@ -3279,6 +3279,12 @@
             document.getElementById('note-preview-view-btn').classList.remove('active-view');
             document.getElementById('note-preview-view-btn').classList.remove('bg-blue-600');
             document.getElementById('note-preview-view-btn').classList.add('bg-gray-600');
+            
+            // Show video controls toolbar
+            const videoControls = document.getElementById('video-controls-toolbar');
+            if (videoControls) {
+                videoControls.classList.remove('hidden');
+            }
         }
 
         function switchToNotePreviewView() {
@@ -3290,6 +3296,13 @@
             document.getElementById('video-note-view-btn').classList.remove('active-view');
             document.getElementById('video-note-view-btn').classList.remove('bg-blue-600');
             document.getElementById('video-note-view-btn').classList.add('bg-gray-600');
+            
+            // Hide video controls toolbar
+            const videoControls = document.getElementById('video-controls-toolbar');
+            if (videoControls) {
+                videoControls.classList.add('hidden');
+            }
+            
             renderNotePreview();
         }
 
