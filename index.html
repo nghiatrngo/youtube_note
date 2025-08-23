@@ -344,6 +344,25 @@
             min-height: 0;
             overflow-y: auto;
         }
+        
+        /* 2-column grid layout for note preview */
+        #all-notes-preview {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        @media (min-width: 768px) {
+            #all-notes-preview {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        /* Ensure note cards have consistent height */
+        #all-notes-preview > div {
+            height: fit-content;
+            min-height: 0;
+        }
     </style>
 </head>
 <body class="bg-gray-100 h-screen">
@@ -626,10 +645,10 @@
                                 </button>
                             </div>
                             
-                            <!-- Scrollable Notes Container -->
-                            <div id="all-notes-preview" class="space-y-4 overflow-y-auto flex-1 min-h-0 pr-2" style="max-height: calc(100vh - 300px);">
-                                <!-- Notes will be populated here -->
-                            </div>
+                                             <!-- Scrollable Notes Container -->
+                 <div id="all-notes-preview" class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto flex-1 min-h-0 pr-2" style="max-height: calc(100vh - 300px);">
+                     <!-- Notes will be populated here -->
+                 </div>
                         </div>
                     </div>
                 </main>
