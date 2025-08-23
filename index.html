@@ -355,10 +355,12 @@
          
          #all-notes-preview.grid-cols-1 {
              flex-direction: column;
+             flex-wrap: nowrap;
          }
          
          #all-notes-preview.grid-cols-2 {
              flex-direction: row;
+             flex-wrap: wrap;
          }
          
          /* Ensure note cards have proper spacing and don't overlap */
@@ -369,8 +371,9 @@
          }
          
          #all-notes-preview.grid-cols-1 > div {
-             flex: 1 1 100%;
+             flex: 0 0 auto;
              width: 100%;
+             max-width: 100%;
          }
          
          /* Ensure note details expand properly */
