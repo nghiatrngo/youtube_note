@@ -401,18 +401,19 @@
              display: flex;
              flex-direction: column;
              align-items: center;
-             width: 48px;
+             width: 40px;
          }
          
          /* When sidebar is collapsed, show left video controls and adjust grid */
          .sidebar-collapsed #left-video-controls {
              display: block !important;
-             width: 48px;
-             min-width: 48px;
+             width: 40px;
+             min-width: 40px;
+             max-width: 40px;
          }
          
          .sidebar-collapsed #video-player-container {
-             grid-column: span 3 / span 3;
+             grid-column: span 4 / span 4;
          }
          
          /* Hide top video controls toolbar when left controls are visible */
@@ -632,33 +633,33 @@
 
 
                     <!-- Video-Note View -->
-                    <div id="video-note-view" class="grid grid-cols-1 xl:grid-cols-5 gap-2 lg:gap-4">
+                    <div id="video-note-view" class="grid grid-cols-1 xl:grid-cols-5 gap-0">
                     <!-- Left Video Controls Column (hidden by default, shown when sidebar collapsed) -->
                     <div id="left-video-controls" class="xl:col-span-1 hidden">
                         <div class="bg-gray-100 border border-gray-200 rounded-lg p-2 space-y-1">
                             <h4 class="text-xs font-semibold text-gray-700 text-center mb-1">Controls</h4>
-                            <button id="left-toolbar-play-pause" class="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded text-xs transition flex items-center justify-center">
+                            <button id="left-toolbar-play-pause" class="w-6 h-6 bg-green-500 hover:bg-green-600 text-white rounded text-xs transition flex items-center justify-center">
                                 ▶
                             </button>
-                            <button id="left-toolbar-frame-back" class="w-8 h-8 bg-gray-500 hover:bg-gray-600 text-white rounded text-xs transition flex items-center justify-center">
+                            <button id="left-toolbar-frame-back" class="w-6 h-6 bg-gray-500 hover:bg-gray-600 text-white rounded text-xs transition flex items-center justify-center">
                                 -1
                             </button>
-                            <button id="left-toolbar-frame-forward" class="w-8 h-8 bg-gray-500 hover:bg-gray-600 text-white rounded text-xs transition flex items-center justify-center">
+                            <button id="left-toolbar-frame-forward" class="w-6 h-6 bg-gray-500 hover:bg-gray-600 text-white rounded text-xs transition flex items-center justify-center">
                                 +1
                             </button>
-                            <button id="left-toolbar-set-start" class="w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs transition flex items-center justify-center">
+                            <button id="left-toolbar-set-start" class="w-6 h-6 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs transition flex items-center justify-center">
                                 S
                             </button>
-                            <button id="left-toolbar-set-end" class="w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs transition flex items-center justify-center">
+                            <button id="left-toolbar-set-end" class="w-6 h-6 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs transition flex items-center justify-center">
                                 E
                             </button>
-                            <button id="left-toolbar-speed-50" class="w-8 h-8 bg-purple-500 hover:bg-purple-600 text-white rounded text-xs transition flex items-center justify-center">
+                            <button id="left-toolbar-speed-50" class="w-6 h-6 bg-purple-500 hover:bg-purple-600 text-white rounded text-xs transition flex items-center justify-center">
                                 50
                             </button>
-                            <button id="left-toolbar-speed-150" class="w-8 h-8 bg-purple-500 hover:bg-purple-600 text-white rounded text-xs transition flex items-center justify-center">
+                            <button id="left-toolbar-speed-150" class="w-6 h-6 bg-purple-500 hover:bg-purple-600 text-white rounded text-xs transition flex items-center justify-center">
                                 150
                             </button>
-                            <button id="left-toolbar-stop-looping" class="w-8 h-8 hidden bg-red-500 hover:bg-red-600 text-white rounded text-xs transition flex items-center justify-center">
+                            <button id="left-toolbar-stop-looping" class="w-6 h-6 hidden bg-red-500 hover:bg-red-600 text-white rounded text-xs transition flex items-center justify-center">
                                 ⏹
                             </button>
                         </div>
@@ -1012,9 +1013,13 @@
                         if (!isActive) {
                             setPlaybackSpeed(0.5);
                             isActive = true;
+                            toolbarSpeed50.classList.remove('bg-purple-500', 'hover:bg-purple-600');
+                            toolbarSpeed50.classList.add('bg-green-500', 'hover:bg-green-600');
                         } else {
                             setPlaybackSpeed(1.0);
                             isActive = false;
+                            toolbarSpeed50.classList.remove('bg-green-500', 'hover:bg-green-600');
+                            toolbarSpeed50.classList.add('bg-purple-500', 'hover:bg-purple-600');
                         }
                     });
                 }
@@ -1025,9 +1030,13 @@
                         if (!isActive) {
                             setPlaybackSpeed(1.5);
                             isActive = true;
+                            toolbarSpeed150.classList.remove('bg-purple-500', 'hover:bg-purple-600');
+                            toolbarSpeed150.classList.add('bg-green-500', 'hover:bg-green-600');
                         } else {
                             setPlaybackSpeed(1.0);
                             isActive = false;
+                            toolbarSpeed150.classList.remove('bg-green-500', 'hover:bg-green-600');
+                            toolbarSpeed150.classList.add('bg-purple-500', 'hover:bg-purple-600');
                         }
                     });
                 }
@@ -1053,9 +1062,13 @@
                         if (!isActive50) {
                             setPlaybackSpeed(0.5);
                             isActive50 = true;
+                            leftToolbarSpeed50.classList.remove('bg-purple-500', 'hover:bg-purple-600');
+                            leftToolbarSpeed50.classList.add('bg-green-500', 'hover:bg-green-600');
                         } else {
                             setPlaybackSpeed(1.0);
                             isActive50 = false;
+                            leftToolbarSpeed50.classList.remove('bg-green-500', 'hover:bg-green-600');
+                            leftToolbarSpeed50.classList.add('bg-purple-500', 'hover:bg-purple-600');
                         }
                     });
                 }
@@ -1066,9 +1079,13 @@
                         if (!isActive150) {
                             setPlaybackSpeed(1.5);
                             isActive150 = true;
+                            leftToolbarSpeed150.classList.remove('bg-purple-500', 'hover:bg-purple-600');
+                            leftToolbarSpeed150.classList.add('bg-green-500', 'hover:bg-green-600');
                         } else {
                             setPlaybackSpeed(1.0);
                             isActive150 = false;
+                            leftToolbarSpeed150.classList.remove('bg-green-500', 'hover:bg-green-600');
+                            leftToolbarSpeed150.classList.add('bg-purple-500', 'hover:bg-purple-600');
                         }
                     });
                 }
