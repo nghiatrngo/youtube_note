@@ -345,18 +345,19 @@
             overflow-y: auto;
         }
         
-        /* 2-column grid layout for note preview */
-        #all-notes-preview {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1rem;
-        }
-        
-        @media (min-width: 768px) {
-            #all-notes-preview {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
+                 /* Grid layout for note preview - controlled by JavaScript */
+         #all-notes-preview {
+             display: grid;
+             gap: 1rem;
+         }
+         
+         #all-notes-preview.grid-cols-1 {
+             grid-template-columns: 1fr;
+         }
+         
+         #all-notes-preview.grid-cols-2 {
+             grid-template-columns: 1fr 1fr;
+         }
         
         /* Ensure note cards have consistent height */
         #all-notes-preview > div {
@@ -623,6 +624,7 @@
                                     <button id="collapse-all-notes" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition">
                                         📕 Collapse All
                                     </button>
+                                    <button id="toggle-columns" class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition">📐 2 Columns</button>
                                     <select id="sort-notes" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-purple-100 text-purple-800 border-purple-300">
                                         <option value="newest">Newest First</option>
                                         <option value="oldest">Oldest First</option>
@@ -645,10 +647,10 @@
                                 </button>
                             </div>
                             
-                                             <!-- Scrollable Notes Container -->
-                 <div id="all-notes-preview" class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto flex-1 min-h-0 pr-2" style="max-height: calc(100vh - 300px);">
-                     <!-- Notes will be populated here -->
-                 </div>
+                            <!-- Scrollable Notes Container -->
+                            <div id="all-notes-preview" class="grid grid-cols-2 gap-4 overflow-y-auto flex-1 min-h-0 pr-2" style="max-height: calc(100vh - 300px);">
+                                <!-- Notes will be populated here -->
+                            </div>
                         </div>
                     </div>
                 </main>
@@ -787,6 +789,12 @@
                 if (collapseAllNotesBtn) {
                     collapseAllNotesBtn.addEventListener('click', collapseAllNotes);
                 }
+                
+                const toggleColumnsBtn = document.getElementById('toggle-columns');
+                if (toggleColumnsBtn) {
+                    toggleColumnsBtn.addEventListener('click', toggleColumns);
+                }
+                
                 if (sortNotesSelect) {
                     sortNotesSelect.addEventListener('change', renderNotePreview);
                 }
@@ -3397,6 +3405,28 @@
                 button.classList.remove('bg-yellow-50', 'border-yellow-200');
                 button.classList.add('bg-blue-50', 'border-blue-200');
             });
+        }
+
+        // Toggle between 1-column and 2-column layout
+        function toggleColumns() {
+            const container = document.getElementById('all-notes-preview');
+            const button = document.getElementById('toggle-columns');
+            
+            if (container.classList.contains('grid-cols-2')) {
+                // Switch to 1 column
+                container.classList.remove('grid-cols-2');
+                container.classList.add('grid-cols-1');
+                button.textContent = '📐 1 Column';
+                button.classList.remove('bg-indigo-500', 'hover:bg-indigo-600');
+                button.classList.add('bg-green-500', 'hover:bg-green-600');
+            } else {
+                // Switch to 2 columns
+                container.classList.remove('grid-cols-1');
+                container.classList.add('grid-cols-2');
+                button.textContent = '📐 2 Columns';
+                button.classList.remove('bg-green-500', 'hover:bg-green-600');
+                button.classList.add('bg-indigo-500', 'hover:bg-indigo-600');
+            }
         }
 
         // Note preview editing functions
