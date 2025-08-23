@@ -347,17 +347,29 @@
             scrollbar-color: #cbd5e1 #f1f5f9;
         }
         
-        /* Ensure note preview view has proper height */
-        #note-preview-view {
-            height: 100%;
-            min-height: 0;
-        }
-        
-        #note-preview-view .bg-white {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
+                 /* Ensure note preview view has proper height and width */
+         #note-preview-view {
+             height: 100%;
+             min-height: 0;
+             width: 100%;
+             grid-column: 1 / -1;
+         }
+         
+         #note-preview-view .bg-white {
+             height: 100%;
+             display: flex;
+             flex-direction: column;
+             width: 100%;
+         }
+         
+         /* Ensure note preview view completely replaces video view */
+         #note-preview-view:not(.hidden) {
+             display: block !important;
+         }
+         
+         #note-preview-view:not(.hidden) ~ #video-note-view {
+             display: none !important;
+         }
         
         #all-notes-preview {
             flex: 1;
@@ -788,8 +800,8 @@
                     </div>
                     
                     <!-- Note-Preview View -->
-                    <div id="note-preview-view" class="hidden">
-                        <div class="bg-white border border-gray-200 rounded-lg p-6 h-full flex flex-col">
+                    <div id="note-preview-view" class="hidden w-full">
+                        <div class="bg-white border border-gray-200 rounded-lg p-6 h-full flex flex-col w-full">
                             <div class="flex items-center justify-between mb-6 flex-shrink-0">
                                 <h3 class="text-2xl font-bold text-gray-800">All Notes Preview</h3>
                                 <div class="flex items-center space-x-3">
