@@ -389,6 +389,30 @@
              position: relative;
              z-index: 1;
          }
+         
+         /* Left video controls responsive behavior */
+         #left-video-controls {
+             transition: all 0.3s ease;
+         }
+         
+         /* When sidebar is collapsed, show left video controls and adjust grid */
+         .sidebar-collapsed #left-video-controls {
+             display: block !important;
+         }
+         
+         .sidebar-collapsed #video-player-container {
+             grid-column: span 2 / span 2;
+         }
+         
+         /* Mobile responsive adjustments */
+         @media (max-width: 1280px) {
+             #left-video-controls {
+                 display: none !important;
+             }
+             #video-player-container {
+                 grid-column: span 4 / span 4;
+             }
+         }
     </style>
 </head>
 <body class="bg-gray-100 h-screen">
@@ -592,18 +616,55 @@
 
 
                     <!-- Video-Note View -->
-                    <div id="video-note-view" class="grid grid-cols-1 xl:grid-cols-4 gap-4 lg:gap-6">
+                    <div id="video-note-view" class="grid grid-cols-1 xl:grid-cols-5 gap-4 lg:gap-6">
+                    <!-- Left Video Controls Column (hidden by default, shown when sidebar collapsed) -->
+                    <div id="left-video-controls" class="xl:col-span-1 hidden">
+                        <div class="bg-gray-100 border border-gray-200 rounded-lg p-4 space-y-3">
+                            <h4 class="text-sm font-semibold text-gray-700 text-center mb-3">Video Controls</h4>
+                            <button id="left-toolbar-play-pause" class="w-full bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded text-sm transition">
+                                ▶ Play
+                            </button>
+                            <div class="flex space-x-2">
+                                <button id="left-toolbar-frame-back" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-2 py-2 rounded text-sm transition">
+                                    -1 Frame
+                                </button>
+                                <button id="left-toolbar-frame-forward" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-2 py-2 rounded text-sm transition">
+                                    +1 Frame
+                                </button>
+                            </div>
+                            <div class="space-y-2">
+                                <button id="left-toolbar-set-start" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-sm transition">
+                                    Set Start
+                                </button>
+                                <button id="left-toolbar-set-end" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-sm transition">
+                                    Set End
+                                </button>
+                            </div>
+                            <div class="space-y-2">
+                                <button id="left-toolbar-speed-50" class="w-full bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded text-sm transition">
+                                    50% Speed
+                                </button>
+                                <button id="left-toolbar-speed-150" class="w-full bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded text-sm transition">
+                                    150% Speed
+                                </button>
+                            </div>
+                            <button id="left-toolbar-stop-looping" class="w-full hidden bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm transition">
+                                Stop Loop
+                            </button>
+                        </div>
+                    </div>
+                    
                     <!-- Video Player -->
-                        <div class="xl:col-span-3">
-                            <!-- YouTube Player -->
+                    <div id="video-player-container" class="xl:col-span-3">
+                        <!-- YouTube Player -->
                         <div id="player-container" class="bg-black rounded-lg overflow-hidden shadow-inner" style="aspect-ratio: 16/9;">
-                                 <div id="player-placeholder" class="w-full h-full flex items-center justify-center text-gray-400">
-                                    <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    <span class="ml-4">Video will appear here</span>
-                                </div>
-                            <div id="player" class="w-full h-full"></div>
+                             <div id="player-placeholder" class="w-full h-full flex items-center justify-center text-gray-400">
+                                <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <span class="ml-4">Video will appear here</span>
                             </div>
-                            </div>
+                        <div id="player" class="w-full h-full"></div>
+                        </div>
+                    </div>
 
                     <!-- Right Sidebar with Note Input and Current Notes -->
                     <div class="xl:col-span-1 space-y-4">
@@ -961,6 +1022,107 @@
                     });
                 }
                 
+                // Left video controls event listeners (for sidebar collapsed state)
+                const leftToolbarPlayPause = document.getElementById('left-toolbar-play-pause');
+                const leftToolbarSetStart = document.getElementById('left-toolbar-set-start');
+                const leftToolbarSetEnd = document.getElementById('left-toolbar-set-end');
+                const leftToolbarStopLooping = document.getElementById('left-toolbar-stop-looping');
+                const leftToolbarSpeed50 = document.getElementById('left-toolbar-speed-50');
+                const leftToolbarSpeed150 = document.getElementById('left-toolbar-speed-150');
+                const leftToolbarFrameBack = document.getElementById('left-toolbar-frame-back');
+                const leftToolbarFrameForward = document.getElementById('left-toolbar-frame-forward');
+                
+                if (leftToolbarPlayPause) leftToolbarPlayPause.addEventListener('click', togglePlayPause);
+                if (leftToolbarSetStart) leftToolbarSetStart.addEventListener('click', () => setTime('start'));
+                if (leftToolbarSetEnd) leftToolbarSetEnd.addEventListener('click', () => setTime('end'));
+                if (leftToolbarStopLooping) leftToolbarStopLooping.addEventListener('click', stopLoop);
+                
+                if (leftToolbarSpeed50) {
+                    let isActive50 = false;
+                    leftToolbarSpeed50.addEventListener('click', () => {
+                        if (!isActive50) {
+                            setPlaybackSpeed(0.5);
+                            isActive50 = true;
+                        } else {
+                            setPlaybackSpeed(1.0);
+                            isActive50 = false;
+                        }
+                    });
+                }
+                
+                if (leftToolbarSpeed150) {
+                    let isActive150 = false;
+                    leftToolbarSpeed150.addEventListener('click', () => {
+                        if (!isActive150) {
+                            setPlaybackSpeed(1.5);
+                            isActive150 = true;
+                        } else {
+                            setPlaybackSpeed(1.0);
+                            isActive150 = false;
+                        }
+                    });
+                }
+                
+                if (leftToolbarFrameBack) {
+                    let leftFrameBackInterval;
+                    leftToolbarFrameBack.addEventListener('mousedown', () => {
+                        leftFrameBackInterval = setInterval(() => seekFrame(-1), 500);
+                    });
+                    leftToolbarFrameBack.addEventListener('mouseup', () => {
+                        if (leftFrameBackInterval) {
+                            clearInterval(leftFrameBackInterval);
+                            leftFrameBackInterval = null;
+                        }
+                    });
+                    leftToolbarFrameBack.addEventListener('mouseleave', () => {
+                        if (leftFrameBackInterval) {
+                            clearInterval(leftFrameBackInterval);
+                            leftFrameBackInterval = null;
+                        }
+                    });
+                    leftToolbarFrameBack.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        leftFrameBackInterval = setInterval(() => seekFrame(-1), 500);
+                    });
+                    leftToolbarFrameBack.addEventListener('touchend', () => {
+                        if (leftFrameBackInterval) {
+                            clearInterval(leftFrameBackInterval);
+                            leftFrameBackInterval = null;
+                        }
+                    });
+                    leftToolbarFrameBack.addEventListener('click', () => seekFrame(-1));
+                }
+                
+                if (leftToolbarFrameForward) {
+                    let leftFrameForwardInterval;
+                    leftToolbarFrameForward.addEventListener('mousedown', () => {
+                        leftFrameForwardInterval = setInterval(() => seekFrame(1), 500);
+                    });
+                    leftToolbarFrameForward.addEventListener('mouseup', () => {
+                        if (leftFrameForwardInterval) {
+                            clearInterval(leftFrameForwardInterval);
+                            leftFrameForwardInterval = null;
+                        }
+                    });
+                    leftToolbarFrameForward.addEventListener('mouseleave', () => {
+                        if (leftFrameForwardInterval) {
+                            clearInterval(leftFrameForwardInterval);
+                            leftFrameForwardInterval = null;
+                        }
+                    });
+                    leftToolbarFrameForward.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        leftFrameForwardInterval = setInterval(() => seekFrame(1), 500);
+                    });
+                    leftToolbarFrameForward.addEventListener('touchend', () => {
+                        if (leftFrameForwardInterval) {
+                            clearInterval(leftFrameForwardInterval);
+                            leftFrameForwardInterval = null;
+                        }
+                    });
+                    leftToolbarFrameForward.addEventListener('click', () => seekFrame(1));
+                }
+                
                 // Note taking event listeners
                 if (addNoteBtn) {
                     console.log('✅ Add note button found, adding event listener');
@@ -1130,6 +1292,7 @@
         function toggleSidebar() {
             if (sidebar && mainContent) {
                 sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('sidebar-collapsed');
                 
                 // Update toggle button icon
                 if (sidebarToggle) {
@@ -3158,9 +3321,23 @@
             if (playerState === 1) { // Playing
                 toolbarPlayPause.innerHTML = '⏸️ Pause';
                 toolbarPlayPause.className = 'bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs transition';
+                
+                // Update left video controls
+                const leftToolbarPlayPause = document.getElementById('left-toolbar-play-pause');
+                if (leftToolbarPlayPause) {
+                    leftToolbarPlayPause.innerHTML = '⏸️ Pause';
+                    leftToolbarPlayPause.className = 'w-full bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded text-sm transition';
+                }
             } else { // Paused, ended, or buffering
                 toolbarPlayPause.innerHTML = '▶️ Play';
                 toolbarPlayPause.className = 'bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs transition';
+                
+                // Update left video controls
+                const leftToolbarPlayPause = document.getElementById('left-toolbar-play-pause');
+                if (leftToolbarPlayPause) {
+                    leftToolbarPlayPause.innerHTML = '▶ Play';
+                    leftToolbarPlayPause.className = 'w-full bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded text-sm transition';
+                }
             }
         }
 
