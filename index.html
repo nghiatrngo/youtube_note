@@ -345,25 +345,38 @@
             overflow-y: auto;
         }
         
-                 /* Grid layout for note preview - controlled by JavaScript */
+                          /* Flexbox layout for note preview - controlled by JavaScript */
          #all-notes-preview {
-             display: grid;
+             display: flex;
+             flex-wrap: wrap;
              gap: 1rem;
+             align-items: flex-start;
          }
          
          #all-notes-preview.grid-cols-1 {
-             grid-template-columns: 1fr;
+             flex-direction: column;
          }
          
          #all-notes-preview.grid-cols-2 {
-             grid-template-columns: 1fr 1fr;
+             flex-direction: row;
          }
-        
-        /* Ensure note cards have consistent height */
-        #all-notes-preview > div {
-            height: fit-content;
-            min-height: 0;
-        }
+         
+         /* Ensure note cards have proper spacing and don't overlap */
+         #all-notes-preview > div {
+             flex: 1 1 calc(50% - 0.5rem);
+             min-width: 0;
+             margin-bottom: 0;
+         }
+         
+         #all-notes-preview.grid-cols-1 > div {
+             flex: 1 1 100%;
+         }
+         
+         /* Ensure note details expand properly */
+         #all-notes-preview [id^="note-details-"] {
+             position: relative;
+             z-index: 1;
+         }
     </style>
 </head>
 <body class="bg-gray-100 h-screen">
@@ -648,7 +661,7 @@
                             </div>
                             
                             <!-- Scrollable Notes Container -->
-                            <div id="all-notes-preview" class="grid grid-cols-2 gap-4 overflow-y-auto flex-1 min-h-0 pr-2" style="max-height: calc(100vh - 300px);">
+                            <div id="all-notes-preview" class="grid-cols-2 gap-4 overflow-y-auto flex-1 min-h-0 pr-2" style="max-height: calc(100vh - 300px);">
                                 <!-- Notes will be populated here -->
                             </div>
                         </div>
