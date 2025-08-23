@@ -367,7 +367,26 @@
              display: block !important;
          }
          
+         /* Force hide video view when note preview is visible */
+         #note-preview-view:not(.hidden) + #video-note-view,
          #note-preview-view:not(.hidden) ~ #video-note-view {
+             display: none !important;
+         }
+         
+         /* Alternative approach - hide video view when note preview is active */
+         .note-preview-active #video-note-view {
+             display: none !important;
+         }
+         
+         /* Ensure note preview view takes full width when active */
+         .note-preview-active #note-preview-view {
+             display: block !important;
+             width: 100% !important;
+             grid-column: 1 / -1 !important;
+         }
+         
+         /* Hide video controls toolbar when note preview is active */
+         .note-preview-active #video-controls-toolbar {
              display: none !important;
          }
         
@@ -3565,6 +3584,12 @@
 
         // View switching functions
         function switchToVideoNoteView() {
+            // Remove note preview active class from main container
+            const mainContainer = document.querySelector('.flex-1');
+            if (mainContainer) {
+                mainContainer.classList.remove('note-preview-active');
+            }
+            
             document.getElementById('video-note-view').classList.remove('hidden');
             document.getElementById('note-preview-view').classList.add('hidden');
             document.getElementById('video-note-view-btn').classList.add('active-view');
@@ -3582,6 +3607,12 @@
         }
 
         function switchToNotePreviewView() {
+            // Add note preview active class to main container
+            const mainContainer = document.querySelector('.flex-1');
+            if (mainContainer) {
+                mainContainer.classList.add('note-preview-active');
+            }
+            
             document.getElementById('video-note-view').classList.add('hidden');
             document.getElementById('note-preview-view').classList.remove('hidden');
             document.getElementById('note-preview-view-btn').classList.add('active-view');
